@@ -2,15 +2,15 @@ use ethers::{
     providers::{Provider, Http},
     middleware::Middleware, 
 };
+use crate::utils::constants::ETH_RPC_URL;
 use eyre::Result;
 
-pub async fn get_latest_block() -> Result<u32> {
+pub async fn get_latest_eth_block() -> Result<u32> {
     let provider = Provider::<Http>::try_from(
-        "https://eth-mainnet.g.alchemy.com/v2/YOUR_API_KEY"
+        ETH_RPC_URL
     )?;
     
     let latest_block_number = provider.get_block_number().await?;
-    
     
     Ok(latest_block_number.as_u32())
 }

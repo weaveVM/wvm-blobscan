@@ -17,3 +17,6 @@ foundry-blob-explorers = {git = "https://github.com/charmful0x/block-explorers.g
 tokio = { version = "1.41.1", features = ["full"]}
 ethers = {version = "2.0.14", features = ["ws"]}
 eyre = "0.6.12"
+brotli = "7.0.0"
+serde = "1.0.215"
+serde_json = "1.0.133"
