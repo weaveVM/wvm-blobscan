@@ -1,0 +1,1 @@
+pub const FIRST_ETH_L1_EIP4844_BLOCK: &str = "19426589";

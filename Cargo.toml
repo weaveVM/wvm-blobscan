@@ -1,0 +1,19 @@
+[package]
+name = "wvm-blobscan"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+alloy-chains = "0.1"
+alloy-primitives = { version = "0.8", default-features = false, features = [
+    "std",
+    "serde",
+] }
+alloy-rpc-types-eth = "0.4"
+alloy-eips = "0.4"
+alloy-serde = "0.4"
+
+foundry-blob-explorers = {git = "https://github.com/charmful0x/block-explorers.git"}
+tokio = { version = "1.41.1", features = ["full"]}
+ethers = {version = "2.0.14", features = ["ws"]}
+eyre = "0.6.12"
