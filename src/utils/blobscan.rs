@@ -1,10 +1,12 @@
 use foundry_blob_explorers::{BlockResponse, Client};
-use eyre::{eyre, Result};
+use eyre::{eyre, Result, Error};
 use std::io::{Read, Write};
 use serde_json;
+use crate::utils::wvm::send_wvm_calldata;
+use crate::utils::planetscale::ps_archive_block;
 
 
-pub async fn get_block_by_id(block_id: u32) -> Result<BlockResponse, eyre::Error> {
+pub async fn get_block_by_id(block_id: u32) -> Result<BlockResponse, Error> {
     let block_id = block_id.to_string();
     let client = Client::mainnet();
 
@@ -14,16 +16,27 @@ pub async fn get_block_by_id(block_id: u32) -> Result<BlockResponse, eyre::Error
         Ok(block) => Ok(block),
         Err(e) => {
             eprintln!("Error getting block: {:?}", e);
-            Err(eyre!("Error getting block: {:?}", e))
+            return Err(eyre!("Error getting block: {:?}", e))
         }
     }
 }
 
-pub fn process_blobscan_block(block: BlockResponse) -> Result<Vec<u8>> {
+pub fn serialize_blobscan_block(block: BlockResponse) -> Result<Vec<u8>> {
     let data = serde_json::to_vec(&block)?;
     let compressed_data = brotli_compress(&data);
-    // println!("data len: before brotli: {} after:{}", data.len(), compressed_data.len());
     Ok(compressed_data)
+}
+
+pub async fn insert_block(block: BlockResponse) -> Result<(), Error> {
+    let wvm_data_input = serialize_blobscan_block(block.clone())?;
+    let raw_block_data = serde_json::to_string(&block)?;
+    let wvm_txid = send_wvm_calldata(wvm_data_input).await.unwrap();
+    let res = ps_archive_block(&(block.clone().number as u32), &wvm_txid, &raw_block_data).await;
+    
+    match res {
+        Ok(res) => Ok(res),
+        Err (res)=> Err(eyre!(res))
+    }
 }
 
 fn brotli_compress(input: &[u8]) -> Vec<u8> {

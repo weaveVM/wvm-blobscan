@@ -1,28 +1,55 @@
-use serde::Serialize;
+use utils::blobscan::insert_block;
 
 use crate::utils::{
-    blobscan::{get_block_by_id, process_blobscan_block},
+    blobscan::{get_block_by_id},
     eth::Ethereum,
     constants::FIRST_ETH_L1_EIP4844_BLOCK,
-    planetscale::ps_archive_block,
+    planetscale::{ps_archive_block, ps_get_latest_block_id},
     wvm::send_wvm_calldata
 };
+
+use std::sync::Arc;
+use tokio::sync::RwLock;
 
 mod utils;
 
 
 #[tokio::main]
 async fn main() {
-    // let block_id = get_latest_eth_block().await.unwrap();
-    // println!("block id: {}", block_id);
-    let block = get_block_by_id(FIRST_ETH_L1_EIP4844_BLOCK).await;
-    let wvm_data_input = process_blobscan_block(block.as_ref().ok().unwrap().clone()).unwrap();
-    let raw_data = serde_json::to_string(&block.unwrap()).unwrap();
-    let wvm_txid = send_wvm_calldata(wvm_data_input).await.unwrap();
-    let _ = ps_archive_block(&FIRST_ETH_L1_EIP4844_BLOCK, &wvm_txid, &raw_data).await.unwrap();
-    // match block {
-    //     Ok(block) => println!("{:#?}", block),
-    //     _ => eprint!("error")
-    // }
+    let block_number = Ethereum::get_latest_eth_block().await.unwrap();
+    let block_number = Arc::new(RwLock::new(block_number));
+    let reader_block_number = block_number.clone();
+    let writer_block_number = block_number.clone();
+
+    let blobscan_insertion = tokio::spawn(async move {
+        let mut latest_archived_block = ps_get_latest_block_id().await;
+        loop {
+            println!("latest archived block id: {}", latest_archived_block);
+            let mut block_number = reader_block_number.read().await;
+            if *block_number > FIRST_ETH_L1_EIP4844_BLOCK && latest_archived_block < *block_number   {
+                let block = get_block_by_id(latest_archived_block + 1).await;
+            match block {
+                Ok(block) => {                println!("block response: {:?}", block);
+                let res = insert_block(block).await;
+                match res {
+                    Ok(res) => latest_archived_block += 1,
+                    _ => eprintln!("error updating planetscale")
+                }}
+                Err(e) => {eprintln!("no blobs found in block {}", latest_archived_block + 1); latest_archived_block += 1}
+            }
+            }
+        }
+    });
+
+    let eth_block_updater = tokio::spawn(async move {
+        loop {
+            let mut block_number = writer_block_number.write().await;
+            *block_number += Ethereum::get_latest_eth_block().await.unwrap();
+            println!("Updated Ethereum Block Number: {}", *block_number);
+            tokio::time::sleep(tokio::time::Duration::from_secs(12)).await;
+        }
+    });
+
+    tokio::try_join!(eth_block_updater, blobscan_insertion);
 }
 

@@ -3,6 +3,8 @@ use planetscale_driver::{query, PSConnection};
 use serde_json::Value;
 use anyhow::Error;
 
+use super::constants::FIRST_ETH_L1_EIP4844_BLOCK;
+
 async fn ps_init() -> PSConnection {
     let host = get_env_var("DATABASE_HOST").unwrap();
     let username = get_env_var("DATABASE_USERNAME").unwrap();
@@ -43,19 +45,15 @@ pub async fn ps_archive_block(
     }
 }
 
-// pub async fn ps_get_latest_block_id() -> u64 {
-//     let network = Network::config();
-//     let conn = ps_init().await;
-
-//     let latest_archived: u64 =
-//         query("SELECT MAX(NetworkBlockId) AS LatestNetworkBlockId FROM WeaveVMArchiverMetis;")
-//             .fetch_scalar(&conn)
-//             .await
-//             .unwrap_or(network.start_block);
-//     // return latest archived block in planetscale + 1
-//     // so the process can start archiving from latest_archived + 1
-//     latest_archived + 1
-// }
+pub async fn ps_get_latest_block_id() -> u32 {
+    let conn = ps_init().await;
+    let latest_archived: u64 =
+        query("SELECT MAX(EthereumBlockId) AS LatestNetworkBlockId FROM Blobscan;")
+            .fetch_scalar(&conn)
+            .await
+            .unwrap_or(FIRST_ETH_L1_EIP4844_BLOCK as u64);
+    latest_archived as u32
+}
 
 // pub async fn ps_get_archived_block_txid(id: u64) -> Value {
 //     let conn = ps_init().await;
