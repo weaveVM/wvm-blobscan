@@ -1,7 +1,7 @@
 use crate::utils::env_var::get_env_var;
+use anyhow::Error;
 use planetscale_driver::{query, PSConnection};
 use serde_json::Value;
-use anyhow::Error;
 
 use super::constants::FIRST_ETH_L1_EIP4844_BLOCK;
 
@@ -18,7 +18,7 @@ async fn ps_init() -> PSConnection {
 pub async fn ps_archive_block(
     network_block_id: &u32,
     wvm_calldata_txid: &str,
-    raw_data: &str
+    raw_data: &str,
 ) -> Result<(), Error> {
     // format to the table VAR(66) limitation
     let wvm_calldata_txid = wvm_calldata_txid.trim_matches('"');

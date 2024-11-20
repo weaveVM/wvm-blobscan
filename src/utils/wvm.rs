@@ -1,12 +1,11 @@
 use {
-    ethers::{prelude::*, utils},
     crate::utils::{
-        eth::Ethereum,
+        constants::{WVM_ARCHIVER_ADDRESS, WVM_CHAIN_ID, WVM_RPC_URL},
         env_var::get_env_var,
-        constants::{WVM_RPC_URL, WVM_CHAIN_ID, WVM_ARCHIVER_ADDRESS}
-    }
+        eth::Ethereum,
+    },
+    ethers::{prelude::*, utils},
 };
-
 
 type Client = SignerMiddleware<Provider<Http>, Wallet<k256::ecdsa::SigningKey>>;
 

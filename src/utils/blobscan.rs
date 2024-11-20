@@ -1,10 +1,9 @@
-use foundry_blob_explorers::{BlockResponse, Client};
-use eyre::{eyre, Result, Error};
-use std::io::{Read, Write};
-use serde_json;
-use crate::utils::wvm::send_wvm_calldata;
 use crate::utils::planetscale::ps_archive_block;
-
+use crate::utils::wvm::send_wvm_calldata;
+use eyre::{eyre, Error, Result};
+use foundry_blob_explorers::{BlockResponse, Client};
+use serde_json;
+use std::io::{Read, Write};
 
 pub async fn get_block_by_id(block_id: u32) -> Result<BlockResponse, Error> {
     let block_id = block_id.to_string();
@@ -16,7 +15,7 @@ pub async fn get_block_by_id(block_id: u32) -> Result<BlockResponse, Error> {
         Ok(block) => Ok(block),
         Err(e) => {
             eprintln!("Error getting block: {:?}", e);
-            return Err(eyre!("Error getting block: {:?}", e))
+            return Err(eyre!("Error getting block: {:?}", e));
         }
     }
 }
@@ -32,10 +31,10 @@ pub async fn insert_block(block: BlockResponse) -> Result<(), Error> {
     let raw_block_data = serde_json::to_string(&block)?;
     let wvm_txid = send_wvm_calldata(wvm_data_input).await.unwrap();
     let res = ps_archive_block(&(block.clone().number as u32), &wvm_txid, &raw_block_data).await;
-    
+
     match res {
         Ok(res) => Ok(res),
-        Err (res)=> Err(eyre!(res))
+        Err(res) => Err(eyre!(res)),
     }
 }
 

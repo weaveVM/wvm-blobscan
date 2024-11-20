@@ -1,18 +1,17 @@
 use utils::blobscan::insert_block;
 
 use crate::utils::{
-    blobscan::{get_block_by_id},
-    eth::Ethereum,
+    blobscan::get_block_by_id,
     constants::FIRST_ETH_L1_EIP4844_BLOCK,
+    eth::Ethereum,
     planetscale::{ps_archive_block, ps_get_latest_block_id},
-    wvm::send_wvm_calldata
+    wvm::send_wvm_calldata,
 };
 
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
 mod utils;
-
 
 #[tokio::main]
 async fn main() {
@@ -26,17 +25,22 @@ async fn main() {
         loop {
             println!("latest archived block id: {}", latest_archived_block);
             let mut block_number = reader_block_number.read().await;
-            if *block_number > FIRST_ETH_L1_EIP4844_BLOCK && latest_archived_block < *block_number   {
+            if *block_number > FIRST_ETH_L1_EIP4844_BLOCK && latest_archived_block < *block_number {
                 let block = get_block_by_id(latest_archived_block + 1).await;
-            match block {
-                Ok(block) => {                println!("block response: {:?}", block);
-                let res = insert_block(block).await;
-                match res {
-                    Ok(res) => latest_archived_block += 1,
-                    _ => eprintln!("error updating planetscale")
-                }}
-                Err(e) => {eprintln!("no blobs found in block {}", latest_archived_block + 1); latest_archived_block += 1}
-            }
+                match block {
+                    Ok(block) => {
+                        println!("block response: {:?}", block);
+                        let res = insert_block(block).await;
+                        match res {
+                            Ok(res) => latest_archived_block += 1,
+                            _ => eprintln!("error updating planetscale"),
+                        }
+                    }
+                    Err(e) => {
+                        eprintln!("no blobs found in block {}", latest_archived_block + 1);
+                        latest_archived_block += 1
+                    }
+                }
             }
         }
     });
@@ -52,4 +56,3 @@ async fn main() {
 
     tokio::try_join!(eth_block_updater, blobscan_insertion);
 }
-
