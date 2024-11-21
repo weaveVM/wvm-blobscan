@@ -70,6 +70,5 @@ pub async fn ps_get_archived_block_txid(id: u64) -> Value {
     let ps_result: GetBlockByIdRes = GetBlockByIdRes::from_ps_result(ps_result).unwrap();
 
     let res = serde_json::json!(ps_result);
-    println!("{}", res);
     res
 }

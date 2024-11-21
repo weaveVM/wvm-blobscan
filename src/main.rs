@@ -1,4 +1,5 @@
 use {
+    axum::{routing::get, Router},
     std::sync::Arc,
     tokio::sync::RwLock,
     utils::{
@@ -6,14 +7,18 @@ use {
         constants::FIRST_ETH_L1_EIP4844_BLOCK,
         eth::Ethereum,
         planetscale::{ps_get_archived_block_txid, ps_get_latest_block_id},
+        server_handlers::{handle_get_block, handle_weave_gm},
     },
 };
 
 mod utils;
 
-#[tokio::main]
-async fn main() {
-    let _ = ps_get_archived_block_txid(19824701).await;
+#[shuttle_runtime::main]
+async fn main() -> shuttle_axum::ShuttleAxum {
+    let router = Router::new()
+        .route("/", get(handle_weave_gm))
+        .route("/v1/block/:id", get(handle_get_block));
+
     let block_number = Ethereum::get_latest_eth_block().await.unwrap();
     let block_number = Arc::new(RwLock::new(block_number));
     let reader_block_number = block_number.clone();
@@ -53,5 +58,6 @@ async fn main() {
         }
     });
 
-    tokio::try_join!(eth_block_updater, blobscan_insertion);
+    // tokio::join!(eth_block_updater, blobscan_insertion);
+    Ok(router.into())
 }

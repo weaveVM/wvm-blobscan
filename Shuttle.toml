@@ -1,0 +1,5 @@
+name = "blobscan"
+
+assets = [
+    ".env"
+]
