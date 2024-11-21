@@ -34,8 +34,8 @@ cargo shuttle run
 graph TD
     A[Ethereum Block]
     B[Fetch Block Object from Blobscan API]
-    C[1. Archive on WeaveVM]
-    D[2. Index on PlanetScale]
+    C[Archive on WeaveVM]
+    D[Index on PlanetScale]
 
     A --> B
     B --> C
