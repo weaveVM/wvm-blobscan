@@ -1,7 +1,12 @@
 use {
-    crate::utils::{constants::FIRST_ETH_L1_EIP4844_BLOCK, env_var::get_env_var},
+    crate::utils::{
+        constants::FIRST_ETH_L1_EIP4844_BLOCK,
+        env_var::get_env_var,
+        types::{GetBlockByIdRes, PsGetBlockById},
+    },
     anyhow::Error,
     planetscale_driver::{query, PSConnection},
+    serde_json::Value,
 };
 
 async fn ps_init() -> PSConnection {
@@ -54,43 +59,17 @@ pub async fn ps_get_latest_block_id() -> u32 {
     latest_archived as u32
 }
 
-// pub async fn ps_get_archived_block_txid(id: u64) -> Value {
-//     let conn = ps_init().await;
+pub async fn ps_get_archived_block_txid(id: u64) -> Value {
+    let conn = ps_init().await;
 
-//     let query_formatted = format!(
-//         "SELECT WeaveVMArchiveTxid FROM WeaveVMArchiverMetis WHERE NetworkBlockId = {}",
-//         id
-//     );
-//     let txid: PsGetBlockTxid = query(&query_formatted).fetch_one(&conn).await.unwrap();
+    let query_formatted = format!(
+        "SELECT EthereumBlockId, WeaveVMArchiveTxid, RawData FROM Blobscan WHERE EthereumBlockId = {}",
+        id
+    );
+    let ps_result: PsGetBlockById = query(&query_formatted).fetch_one(&conn).await.unwrap();
+    let ps_result: GetBlockByIdRes = GetBlockByIdRes::from_ps_result(ps_result).unwrap();
 
-//     let res = serde_json::json!(txid);
-//     res
-// }
-
-// pub async fn ps_get_blocks_extremes(extreme: &str) -> Value {
-//     let conn = ps_init().await;
-
-//     let query_type = match extreme {
-//         "first" => "ASC",
-//         "last" => "DESC",
-//         _ => panic!("invalid extreme value. Use 'first' or 'last'."),
-//     };
-
-//     let query_formatted = format!(
-//         "SELECT NetworkBlockId FROM WeaveVMArchiverMetis ORDER BY NetworkBlockId {} LIMIT 1;",
-//         query_type
-//     );
-
-//     let query: PsGetExtremeBlock = query(&query_formatted).fetch_one(&conn).await.unwrap();
-
-//     let res = serde_json::json!(query);
-//     res
-// }
-
-// pub async fn ps_get_archived_blocks_count() -> PsGetTotalBlocksCount {
-//     let conn = ps_init().await;
-
-//     let query_formatted = "SELECT MAX(Id) FROM WeaveVMArchiverMetis;";
-//     let count: PsGetTotalBlocksCount = query(&query_formatted).fetch_one(&conn).await.unwrap();
-//     count
-// }
+    let res = serde_json::json!(ps_result);
+    println!("{}", res);
+    res
+}

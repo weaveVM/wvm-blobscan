@@ -5,7 +5,7 @@ use {
         blobscan::{get_block_by_id, insert_block},
         constants::FIRST_ETH_L1_EIP4844_BLOCK,
         eth::Ethereum,
-        planetscale::ps_get_latest_block_id,
+        planetscale::{ps_get_archived_block_txid, ps_get_latest_block_id},
     },
 };
 
@@ -13,6 +13,7 @@ mod utils;
 
 #[tokio::main]
 async fn main() {
+    let _ = ps_get_archived_block_txid(19824701).await;
     let block_number = Ethereum::get_latest_eth_block().await.unwrap();
     let block_number = Arc::new(RwLock::new(block_number));
     let reader_block_number = block_number.clone();
