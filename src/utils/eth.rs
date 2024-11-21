@@ -1,9 +1,11 @@
-use crate::utils::constants::ETH_RPC_URL;
-use ethers::{
-    middleware::Middleware,
-    providers::{Http, Provider},
+use {
+    crate::utils::constants::ETH_RPC_URL,
+    ethers::{
+        middleware::Middleware,
+        providers::{Http, Provider},
+    },
+    eyre::{Error, Result},
 };
-use eyre::Result;
 
 pub struct Ethereum {}
 

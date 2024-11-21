@@ -1,9 +1,10 @@
-use crate::utils::planetscale::ps_archive_block;
-use crate::utils::wvm::send_wvm_calldata;
-use eyre::{eyre, Error, Result};
-use foundry_blob_explorers::{BlockResponse, Client};
-use serde_json;
-use std::io::{Read, Write};
+use {
+    crate::utils::{planetscale::ps_archive_block, wvm::send_wvm_calldata},
+    eyre::{eyre, Error, Result},
+    foundry_blob_explorers::{BlockResponse, Client},
+    serde_json,
+    std::io::{Read, Write},
+};
 
 pub async fn get_block_by_id(block_id: u32) -> Result<BlockResponse, Error> {
     let block_id = block_id.to_string();

@@ -1,15 +1,13 @@
-use utils::blobscan::insert_block;
-
-use crate::utils::{
-    blobscan::get_block_by_id,
-    constants::FIRST_ETH_L1_EIP4844_BLOCK,
-    eth::Ethereum,
-    planetscale::{ps_archive_block, ps_get_latest_block_id},
-    wvm::send_wvm_calldata,
+use {
+    std::sync::Arc,
+    tokio::sync::RwLock,
+    utils::{
+        blobscan::{get_block_by_id, insert_block},
+        constants::FIRST_ETH_L1_EIP4844_BLOCK,
+        eth::Ethereum,
+        planetscale::ps_get_latest_block_id,
+    },
 };
-
-use std::sync::Arc;
-use tokio::sync::RwLock;
 
 mod utils;
 

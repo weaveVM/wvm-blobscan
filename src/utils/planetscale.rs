@@ -1,9 +1,8 @@
-use crate::utils::env_var::get_env_var;
-use anyhow::Error;
-use planetscale_driver::{query, PSConnection};
-use serde_json::Value;
-
-use super::constants::FIRST_ETH_L1_EIP4844_BLOCK;
+use {
+    crate::utils::{constants::FIRST_ETH_L1_EIP4844_BLOCK, env_var::get_env_var},
+    anyhow::Error,
+    planetscale_driver::{query, PSConnection},
+};
 
 async fn ps_init() -> PSConnection {
     let host = get_env_var("DATABASE_HOST").unwrap();
