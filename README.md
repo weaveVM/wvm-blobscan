@@ -32,16 +32,15 @@ cargo shuttle run
 
 ```mermaid
 graph TD
-    A[Ethereum Block] --> B[Fetch Block Object from Blobscan API]
-    B --> C[1. Archive on WeaveVM]
-    C --> D[2. Index on PlanetScale]
+    A[Ethereum Block]
+    B[Fetch Block Object from Blobscan API]
+    C[1. Archive on WeaveVM]
+    D[2. Index on PlanetScale]
 
+    A --> B
+    B --> C
+    C --> D
     C -- Archive TxId --> D
-    
-    style A fill:#f9f,stroke:#333
-    style B fill:#bbf,stroke:#333
-    style C fill:#bfb,stroke:#333
-    style D fill:#bfb,stroke:#333
 ```
 ## Server Methods
 
