@@ -21,9 +21,9 @@ impl GetBlockByIdRes {
     pub fn from_ps_result(obj: PsGetBlockById) -> Result<Self, serde_json::Error> {
         let data = serde_json::from_str(&obj.raw_data).unwrap();
         Ok(Self {
-            data,
             ethereum_block_number: obj.ethereum_block_number,
             wvm_archiver_txid: obj.wvm_archive_txid,
+            data
         })
     }
 }
