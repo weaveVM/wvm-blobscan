@@ -1,7 +1,6 @@
 use {
     planetscale_driver::Database,
-    serde::{Deserialize, Serialize},
-    serde_json::Value,
+    serde::{Deserialize, Serialize}
 };
 #[derive(Debug, Serialize, Deserialize, Database)]
 pub struct PsGetBlockByVersionedHash {
