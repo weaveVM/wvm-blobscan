@@ -1,5 +1,5 @@
 use {
-    crate::utils::{planetscale::ps_archive_block, wvm::send_wvm_calldata},
+    crate::utils::{planetscale::ps_archive_block, types::BlobInfo, wvm::send_wvm_calldata},
     eyre::{eyre, Error, Result},
     foundry_blob_explorers::{BlockResponse, Client},
     serde_json,
@@ -21,22 +21,52 @@ pub async fn get_block_by_id(block_id: u32) -> Result<BlockResponse, Error> {
     }
 }
 
-pub fn serialize_blobscan_block(block: BlockResponse) -> Result<Vec<u8>> {
+pub fn get_blobs_of_block(block: BlockResponse) -> Result<Vec<BlobInfo>> {
+    let mut res: Vec<BlobInfo> = Vec::new();
+    let txs = block.transactions;
+    for _tx in txs {
+        let blobs = _tx.blobs;
+
+        println!("BLOCKS COUNT IN BLOCK #{} is {}", block.number, blobs.len());
+
+        for _blob in blobs {
+            let to_blob_info = BlobInfo::from(
+                block.number,
+                _blob.versioned_hash.to_string(),
+                _blob.data.to_string(),
+            );
+            println!("{:?}", to_blob_info);
+            res.push(to_blob_info);
+        }
+    }
+
+    Ok(res)
+}
+
+pub fn serialize_blobscan_block(block: &BlobInfo) -> Result<Vec<u8>> {
     let data = serde_json::to_vec(&block)?;
     let compressed_data = brotli_compress(&data);
     Ok(compressed_data)
 }
 
 pub async fn insert_block(block: BlockResponse) -> Result<(), Error> {
-    let wvm_data_input = serialize_blobscan_block(block.clone())?;
-    let raw_block_data = serde_json::to_string(&block)?;
-    let wvm_txid = send_wvm_calldata(wvm_data_input).await.unwrap();
-    let res = ps_archive_block(&(block.clone().number as u32), &wvm_txid, &raw_block_data).await;
+    let blobs = get_blobs_of_block(block.clone())?;
 
-    match res {
-        Ok(res) => Ok(res),
-        Err(res) => Err(eyre!(res)),
+    for blob in blobs {
+        let wvm_data_input = serialize_blobscan_block(&blob)?;
+        let raw_block_data = serde_json::to_string(&blob)?;
+        let wvm_txid = send_wvm_calldata(wvm_data_input).await.unwrap();
+        let res = ps_archive_block(
+            &(block.clone().number as u32),
+            &wvm_txid,
+            &blob.versioned_hash,
+            &blob.data,
+        )
+        .await
+        .unwrap();
     }
+
+    Ok(())
 }
 
 fn brotli_compress(input: &[u8]) -> Vec<u8> {

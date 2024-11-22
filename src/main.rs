@@ -3,10 +3,10 @@ use {
     std::sync::Arc,
     tokio::sync::RwLock,
     utils::{
-        blobscan::{get_block_by_id, insert_block},
+        blobscan::{get_blobs_of_block, get_block_by_id, insert_block},
         constants::FIRST_ETH_L1_EIP4844_BLOCK,
         eth::Ethereum,
-        planetscale::{ps_get_archived_block_txid, ps_get_latest_block_id},
+        planetscale::{ps_get_blob_data_by_versioned_hash, ps_get_latest_block_id},
         server_handlers::{handle_get_block, handle_weave_gm},
     },
 };
@@ -17,7 +17,7 @@ mod utils;
 async fn main() -> shuttle_axum::ShuttleAxum {
     let router = Router::new()
         .route("/", get(handle_weave_gm))
-        .route("/v1/block/:id", get(handle_get_block));
+        .route("/v1/blob/:versioned_hash", get(handle_get_block));
 
     let block_number = Ethereum::get_latest_eth_block().await.unwrap();
     let block_number = Arc::new(RwLock::new(block_number));

@@ -44,19 +44,20 @@ graph TD
 ```
 ## Server Methods
 
-### Retrieve full block data and the associated archive txid
+### Retrieve blob data and the associated archive txid by VersionedHash
 
 ```bash
-curl -X GET https://blobscan.shuttleapp.rs/v1/block/$ETH_BLOCK_NUMBER
+curl -X GET https://blobscan.shuttleapp.rs/v1/blob/$BLOB_VERSIONED_HASH
 ```
 
 Returns the res in the format as in below:
 
 ```rs
-pub struct GetBlockByIdRes {
+pub struct PsGetBlockByVersionedHash {
     pub ethereum_block_number: u64,
-    pub wvm_archiver_txid: String,
-    pub data: Value,
+    pub wvm_archive_txid: String,
+    pub versioned_hash: String,
+    pub blob_data: String,
 }
 ```
 

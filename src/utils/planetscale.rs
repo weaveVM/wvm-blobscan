@@ -1,8 +1,7 @@
 use {
     crate::utils::{
-        constants::FIRST_ETH_L1_EIP4844_BLOCK,
-        env_var::get_env_var,
-        types::{GetBlockByIdRes, PsGetBlockById},
+        constants::FIRST_ETH_L1_EIP4844_BLOCK, env_var::get_env_var,
+        types::PsGetBlockByVersionedHash,
     },
     anyhow::Error,
     planetscale_driver::{query, PSConnection},
@@ -22,18 +21,20 @@ async fn ps_init() -> PSConnection {
 pub async fn ps_archive_block(
     network_block_id: &u32,
     wvm_calldata_txid: &str,
-    raw_data: &str,
+    versioned_hash: &str,
+    blob_data: &str,
 ) -> Result<(), Error> {
     // format to the table VAR(66) limitation
     let wvm_calldata_txid = wvm_calldata_txid.trim_matches('"');
     let conn = ps_init().await;
 
     let res = query(
-        "INSERT INTO Blobscan(EthereumBlockId, WeaveVMArchiveTxid, RawData) VALUES($0, \"$1\", \"$2\")",
+        "INSERT INTO Blobscan(EthereumBlockId, WeaveVMArchiveTxid, VersionedHash, BlobData) VALUES($0, \"$1\", \"$2\", \"$3\")",
     )
     .bind(network_block_id)
     .bind(wvm_calldata_txid)
-    .bind(raw_data)
+    .bind(versioned_hash)
+    .bind(blob_data)
     .execute(&conn)
     .await;
 
@@ -59,15 +60,15 @@ pub async fn ps_get_latest_block_id() -> u32 {
     latest_archived as u32
 }
 
-pub async fn ps_get_archived_block_txid(id: u64) -> Value {
+pub async fn ps_get_blob_data_by_versioned_hash(versioned_hash: &str) -> Value {
     let conn = ps_init().await;
 
     let query_formatted = format!(
-        "SELECT EthereumBlockId, WeaveVMArchiveTxid, RawData FROM Blobscan WHERE EthereumBlockId = {}",
-        id
+        "SELECT EthereumBlockId, WeaveVMArchiveTxid, VersionedHash, BlobData FROM Blobscan WHERE VersionedHash = '{}' LIMIT 1;",
+        versioned_hash
     );
-    let ps_result: PsGetBlockById = query(&query_formatted).fetch_one(&conn).await.unwrap();
-    let ps_result: GetBlockByIdRes = GetBlockByIdRes::from_ps_result(ps_result).unwrap();
+    let ps_result: PsGetBlockByVersionedHash =
+        query(&query_formatted).fetch_one(&conn).await.unwrap();
 
     let res = serde_json::json!(ps_result);
     res

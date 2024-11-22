@@ -4,26 +4,26 @@ use {
     serde_json::Value,
 };
 #[derive(Debug, Serialize, Deserialize, Database)]
-pub struct PsGetBlockById {
+pub struct PsGetBlockByVersionedHash {
     pub ethereum_block_number: u64,
     pub wvm_archive_txid: String,
-    pub raw_data: String,
+    pub versioned_hash: String,
+    pub blob_data: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct GetBlockByIdRes {
+pub struct BlobInfo {
     pub ethereum_block_number: u64,
-    pub wvm_archiver_txid: String,
-    pub data: Value,
+    pub versioned_hash: String,
+    pub data: String,
 }
 
-impl GetBlockByIdRes {
-    pub fn from_ps_result(obj: PsGetBlockById) -> Result<Self, serde_json::Error> {
-        let data = serde_json::from_str(&obj.raw_data).unwrap();
-        Ok(Self {
-            ethereum_block_number: obj.ethereum_block_number,
-            wvm_archiver_txid: obj.wvm_archive_txid,
-            data
-        })
+impl BlobInfo {
+    pub fn from(ethereum_block_number: u64, versioned_hash: String, data: String) -> Self {
+        Self {
+            ethereum_block_number,
+            versioned_hash,
+            data,
+        }
     }
 }
