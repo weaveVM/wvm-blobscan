@@ -61,5 +61,11 @@ pub struct PsGetBlockByVersionedHash {
 }
 ```
 
+### Retrieve Archiver stats
+
+```bash
+curl -X GET https://blobscan.shuttleapp.rs/v1/stats
+```
+
 ## License
 This project is licensed under the [MIT License](./LICENSE)
