@@ -1,7 +1,8 @@
 use {
     crate::utils::{
-        constants::FIRST_ETH_L1_EIP4844_BLOCK, env_var::get_env_var,
-        types::PsGetBlockByVersionedHash,
+        constants::FIRST_ETH_L1_EIP4844_BLOCK,
+        env_var::get_env_var,
+        types::{PsGetBlockByVersionedHash, PsGetLatestArchivedBlock},
     },
     anyhow::Error,
     planetscale_driver::{query, PSConnection},
@@ -50,7 +51,7 @@ pub async fn ps_archive_block(
     }
 }
 
-pub async fn ps_get_latest_block_id() -> u32 {
+pub async fn get_latest_block_id() -> u32 {
     let conn = ps_init().await;
     let latest_archived: u64 =
         query("SELECT MAX(EthereumBlockId) AS LatestNetworkBlockId FROM Blobscan;")
@@ -58,6 +59,19 @@ pub async fn ps_get_latest_block_id() -> u32 {
             .await
             .unwrap_or(FIRST_ETH_L1_EIP4844_BLOCK as u64);
     latest_archived as u32
+}
+
+pub async fn ps_get_stats() -> Value {
+    let conn = ps_init().await;
+
+    let query_formatted = format!(
+        "SELECT EthereumBlockId, WeaveVMArchiveTxid, VersionedHash FROM Blobscan WHERE EthereumBlockId = (SELECT MAX(EthereumBlockId) FROM Blobscan) LIMIT 1;"
+    );
+    let ps_result: PsGetLatestArchivedBlock =
+        query(&query_formatted).fetch_one(&conn).await.unwrap();
+
+    let res = serde_json::json!(ps_result);
+    res
 }
 
 pub async fn ps_get_blob_data_by_versioned_hash(versioned_hash: &str) -> Value {

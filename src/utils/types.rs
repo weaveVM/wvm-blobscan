@@ -1,6 +1,6 @@
 use {
     planetscale_driver::Database,
-    serde::{Deserialize, Serialize}
+    serde::{Deserialize, Serialize},
 };
 #[derive(Debug, Serialize, Deserialize, Database)]
 pub struct PsGetBlockByVersionedHash {
@@ -8,6 +8,13 @@ pub struct PsGetBlockByVersionedHash {
     pub wvm_archive_txid: String,
     pub versioned_hash: String,
     pub blob_data: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Database)]
+pub struct PsGetLatestArchivedBlock {
+    pub ethereum_block_number: u64,
+    pub versioned_hash: String,
+    pub wvm_archive_txid: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

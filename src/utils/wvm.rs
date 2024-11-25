@@ -36,7 +36,7 @@ pub async fn send_transaction(
         address_from, address_to
     );
     // 2.14 Gwei 2_140_000_000
-    let gas_price = U256::from(1_000_000_000);
+    let gas_price = U256::from(1_000_000_000); // 1 Gwei
     let tx = TransactionRequest::new()
         .to(address_to.clone())
         .value(U256::from(utils::parse_ether(0)?))
