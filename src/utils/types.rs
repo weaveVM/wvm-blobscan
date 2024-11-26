@@ -12,8 +12,8 @@ pub struct PsGetBlockByVersionedHash {
 
 #[derive(Debug, Serialize, Deserialize, Database)]
 pub struct PsGetLatestArchivedBlock {
-    pub ethereum_block_number: u64,
-    pub versioned_hash: String,
+    pub last_archived_eth_block: u64,
+    pub blob_versioned_hash: String,
     pub wvm_archive_txid: String,
 }
 
