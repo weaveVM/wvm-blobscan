@@ -9,7 +9,7 @@
 
 ### Prerequisites & Dependencies
 
-While the core functionality of this ETL codebase can run without web2 component dependencies, this node implementation uses [planetscale](https://planetscale.com) for cloud indexing and [shuttle.rs](https://shuttle.rs) for backend hosting. Check [.env.example](./env.example) to set up your environment variables.
+While the core functionality of this ETL codebase can run without web2 component dependencies, this node implementation uses [planetscale](https://planetscale.com) for cloud indexing and [shuttle.dev](https://shuttle.dev) for backend hosting. Check [.env.example](./env.example) to set up your environment variables.
 
 ```js
 blobscan_pk="" // WeaveVM Blobscan archiver PK
@@ -26,7 +26,7 @@ git clone https://github.com/weaveVM/wvm-blobscan.git
 
 cd wvm-blobscan
 
-cargo shuttle run
+shuttle run
 ```
 ## Workflow
 
@@ -47,7 +47,7 @@ graph TD
 ### Retrieve blob data and the associated archive txid by VersionedHash
 
 ```bash
-curl -X GET https://blobscan.shuttleapp.rs/v1/blob/$BLOB_VERSIONED_HASH
+curl -X GET https://blobscan.wvm.network/v1/blob/$BLOB_VERSIONED_HASH
 ```
 
 Returns the res in the format as in below:
@@ -64,7 +64,7 @@ pub struct PsGetBlockByVersionedHash {
 ### Retrieve Archiver stats
 
 ```bash
-curl -X GET https://blobscan.shuttleapp.rs/v1/stats
+curl -X GET https://blobscan.wvm.network/v1/stats
 ```
 
 ## License
