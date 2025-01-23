@@ -65,6 +65,5 @@ async fn main(
         }
     });
 
-    // tokio::join!(eth_block_updater, blobscan_insertion);
     Ok(router.into())
 }
