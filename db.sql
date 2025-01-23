@@ -7,3 +7,5 @@ CREATE TABLE IF NOT EXISTS Blobscan (
     VersionedHash TINYTEXT,
     BlobData LONGTEXT
 );
+
+CREATE INDEX idx_versioned_hash ON Blobscan(VersionedHash(16));
