@@ -13,8 +13,8 @@ pub struct PsGetBlockByVersionedHash {
 #[derive(Debug, Serialize, Deserialize, Database)]
 pub struct PsGetLatestArchivedBlock {
     pub last_archived_eth_block: u64,
-    pub wvm_archive_txid: String, 
-    pub blob_versioned_hash : String,
+    pub wvm_archive_txid: String,
+    pub blob_versioned_hash: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

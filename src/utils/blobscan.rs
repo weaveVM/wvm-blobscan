@@ -1,8 +1,9 @@
 use {
+    crate::utils::env_var::get_env_var,
     crate::utils::{planetscale::ps_archive_block, types::BlobInfo, wvm::send_wvm_calldata},
     eyre::{eyre, Error, Result},
     foundry_blob_explorers::{BlockResponse, Client},
-    serde_json,
+    reqwest, serde_json,
     std::io::{Read, Write},
 };
 
@@ -35,7 +36,7 @@ pub fn get_blobs_of_block(block: BlockResponse) -> Result<Vec<BlobInfo>> {
                 _blob.versioned_hash.to_string(),
                 _blob.data.to_string(),
             );
-            println!("{:?}", to_blob_info);
+            // println!("{:?}", to_blob_info);
             res.push(to_blob_info);
         }
     }
@@ -64,6 +65,7 @@ pub async fn insert_block(block: BlockResponse) -> Result<(), Error> {
         )
         .await
         .unwrap();
+        let _send_to_blobscan = send_blob_to_blobscan(&blob.versioned_hash).await.unwrap();
     }
 
     Ok(())
@@ -83,4 +85,22 @@ fn brotli_decompress(input: Vec<u8>) -> Vec<u8> {
         .read_to_end(&mut decompressed_data)
         .expect("Decompression failed");
     decompressed_data
+}
+
+pub async fn send_blob_to_blobscan(blob_hash: &str) -> Result<(), Error> {
+    let client = reqwest::Client::new();
+    let key = get_env_var("blobscan_api_key").unwrap();
+    let response = client
+        .post("https://api.blobscan.com/blobs/weavevm-references")
+        .header("Authorization", key)
+        .json(&serde_json::json!({
+            "blobHashes": [blob_hash]
+        }))
+        .send()
+        .await?;
+
+    println!("Status: {}", response.status());
+    println!("Headers: {:?}", response.headers());
+
+    Ok(())
 }
