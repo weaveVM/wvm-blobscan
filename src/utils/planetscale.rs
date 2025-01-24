@@ -2,7 +2,7 @@ use {
     crate::utils::{
         constants::FIRST_ETH_L1_EIP4844_BLOCK,
         env_var::get_env_var,
-        types::{PsGetBlockByVersionedHash, PsGetLatestArchivedBlock},
+        types::{PsGetBlockByVersionedHash, PsGetLatestArchivedBlock, VersionedHashOnly},
     },
     anyhow::Error,
     planetscale_driver::{query, PSConnection},
@@ -86,4 +86,21 @@ pub async fn ps_get_blob_data_by_versioned_hash(versioned_hash: &str) -> Value {
 
     let res = serde_json::json!(ps_result);
     res
+}
+
+pub async fn ps_get_all_versioned_hashes_paginated(page: u32) -> Vec<VersionedHashOnly> {
+    let conn = ps_init().await;
+    let offset = page * 100000;
+
+    let query_str = format!(
+        "SELECT VersionedHash FROM Blobscan LIMIT 100000 OFFSET {};",
+        offset
+    );
+
+    let ps_results: Vec<VersionedHashOnly> = match query(&query_str).fetch_all(&conn).await {
+        Ok(results) => results,
+        Err(e) => panic!("Database query failed: {}", e),
+    };
+
+    ps_results
 }

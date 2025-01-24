@@ -3,7 +3,7 @@ use {
     std::sync::Arc,
     tokio::sync::RwLock,
     utils::{
-        blobscan::{get_block_by_id, insert_block},
+        blobscan::{get_block_by_id, insert_block}, // backfill_blobscan_blobs
         constants::FIRST_ETH_L1_EIP4844_BLOCK,
         eth::Ethereum,
         planetscale::get_latest_block_id,
@@ -30,6 +30,8 @@ async fn main(
     let block_number = Arc::new(RwLock::new(block_number));
     let reader_block_number = block_number.clone();
     let writer_block_number = block_number.clone();
+
+    // backfill_blobscan_blobs(3).await;
 
     let blobscan_insertion = tokio::spawn(async move {
         let mut latest_archived_block = get_latest_block_id().await;

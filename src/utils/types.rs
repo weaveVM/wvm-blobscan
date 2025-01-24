@@ -2,6 +2,12 @@ use {
     planetscale_driver::Database,
     serde::{Deserialize, Serialize},
 };
+
+#[derive(Debug, Serialize, Deserialize, Database)]
+pub struct VersionedHashOnly {
+    pub versioned_hash: String,
+}
+
 #[derive(Debug, Serialize, Deserialize, Database)]
 pub struct PsGetBlockByVersionedHash {
     pub ethereum_block_number: u64,
