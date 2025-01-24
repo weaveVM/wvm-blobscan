@@ -1,6 +1,10 @@
 use {
     crate::utils::env_var::get_env_var,
-    crate::utils::{planetscale::ps_archive_block, types::BlobInfo, wvm::send_wvm_calldata},
+    crate::utils::{
+        planetscale::{ps_archive_block, ps_get_all_versioned_hashes_paginated},
+        types::BlobInfo,
+        wvm::send_wvm_calldata,
+    },
     eyre::{eyre, Error, Result},
     foundry_blob_explorers::{BlockResponse, Client},
     reqwest, serde_json,
@@ -104,3 +108,42 @@ pub async fn send_blob_to_blobscan(blob_hash: &str) -> Result<(), Error> {
 
     Ok(())
 }
+
+// pub async fn send_blobs_to_blobscan(blob_hash: Vec<&str>) -> Result<(), Error> {
+//     let client = reqwest::Client::new();
+//     let key = get_env_var("blobscan_api_key").unwrap();
+//     let response = client
+//         .post("https://api.blobscan.com/blobs/weavevm-references")
+//         .header("Authorization", key)
+//         .json(&serde_json::json!({
+//             "blobHashes": blob_hash
+//         }))
+//         .send()
+//         .await?;
+
+//     println!("Status: {}", response.status());
+//     println!("Headers: {:?}", response.headers());
+
+//     Ok(())
+// }
+
+// pub async fn backfill_blobscan_blobs(page: u32) {
+//     for page in 0..page {
+//         let mut temp_hashes: Vec<&str> = vec![];
+//         let mut i = 0;
+//         let batch = ps_get_all_versioned_hashes_paginated(page).await;
+
+//         for el in &batch {
+//             let hash = &el.versioned_hash;
+//             temp_hashes.push(&hash);
+//         }
+//         println!("Fetched {} blobs", temp_hashes.len());
+//         println!("sending blobs on 10ks to blobscan");
+
+//         while i < 100_000 {
+//             println!("{} {}", i, i + 10_000);
+//             let _ = send_blobs_to_blobscan(temp_hashes[i..i + 10_000].to_vec()).await.unwrap();
+//             i += 10_000;
+//         }
+//      }
+// }
