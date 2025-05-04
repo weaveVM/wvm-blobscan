@@ -42,10 +42,10 @@ impl BlobInfo {
 
 impl std::fmt::Display for BlobInfo {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Block: {}, Hash: {}, Data: {}", 
-            self.ethereum_block_number, 
-            self.versioned_hash, 
-            self.data)
+        write!(
+            f,
+            "Block: {}, Hash: {}, Data: {}",
+            self.ethereum_block_number, self.versioned_hash, self.data
+        )
     }
 }
-

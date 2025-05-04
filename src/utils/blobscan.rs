@@ -1,44 +1,67 @@
 use {
-    crate::utils::{env_var::get_env_var, planetscale::{ps_archive_block, ps_get_all_versioned_hashes_paginated}, types::BlobInfo, wvm::send_wvm_calldata},
+    crate::utils::{
+        env_var::get_env_var,
+        planetscale::{ps_archive_block, ps_get_all_versioned_hashes_paginated},
+        types::BlobInfo,
+        wvm::send_wvm_calldata,
+    },
     eyre::{eyre, Error, Result},
-    reqwest, serde_json::{self, Value},
+    reqwest,
+    serde_json::{self, Value},
     std::io::{Read, Write},
 };
 
-
-pub async fn get_blobs_versioned_hashes_of_block(block_id: u32) -> Result<Vec<String>, eyre::Error> {
-    let url = format!("https://api.blobscan.com/blocks/{}?type=canonical", block_id);
-    let req: Value = reqwest::Client::new().get(url).send().await.unwrap().json().await?;
+pub async fn get_blobs_versioned_hashes_of_block(
+    block_id: u32,
+) -> Result<Vec<String>, eyre::Error> {
+    let url = format!(
+        "https://api.blobscan.com/blocks/{}?type=canonical",
+        block_id
+    );
+    let req: Value = reqwest::Client::new()
+        .get(url)
+        .send()
+        .await
+        .unwrap()
+        .json()
+        .await?;
     let versioned_hashes: Vec<String> = req
-    .pointer("/transactions")
-    .and_then(|txs| txs.as_array())
-    .map(|txs| {
-        txs.iter()
-            .filter_map(|tx| tx.pointer("/blobs"))
-            .filter_map(|blobs| blobs.as_array())
-            .flat_map(|blobs| {
-                blobs.iter()
-                    .filter_map(|blob| blob.pointer("/versionedHash"))
-                    .filter_map(|hash| hash.as_str())
-                    .map(String::from)
-                    .collect::<Vec<String>>()
-            })
-            .collect()
-    })
-    .unwrap_or_default();
+        .pointer("/transactions")
+        .and_then(|txs| txs.as_array())
+        .map(|txs| {
+            txs.iter()
+                .filter_map(|tx| tx.pointer("/blobs"))
+                .filter_map(|blobs| blobs.as_array())
+                .flat_map(|blobs| {
+                    blobs
+                        .iter()
+                        .filter_map(|blob| blob.pointer("/versionedHash"))
+                        .filter_map(|hash| hash.as_str())
+                        .map(String::from)
+                        .collect::<Vec<String>>()
+                })
+                .collect()
+        })
+        .unwrap_or_default();
     Ok(versioned_hashes)
-
 }
 
 async fn get_blob_data(versioned_hash: &str) -> Result<String, eyre::Error> {
     let url = format!("https://api.blobscan.com/blobs/{}/data", versioned_hash);
-    let res = reqwest::Client::new().get(url).send().await?.text().await.unwrap_or_default();
+    let res = reqwest::Client::new()
+        .get(url)
+        .send()
+        .await?
+        .text()
+        .await
+        .unwrap_or_default();
     Ok(res)
-
 }
 
 pub async fn get_blobs_of_block(block_id: u32) -> Result<Vec<BlobInfo>> {
-    let versioned_hashes = get_blobs_versioned_hashes_of_block(block_id).await.unwrap_or_default();
+    let versioned_hashes = get_blobs_versioned_hashes_of_block(block_id)
+        .await
+        .unwrap_or_default();
     let mut res: Vec<BlobInfo> = Vec::new();
     for hash in versioned_hashes {
         let blob_data = get_blob_data(&hash).await.unwrap();
@@ -46,7 +69,7 @@ pub async fn get_blobs_of_block(block_id: u32) -> Result<Vec<BlobInfo>> {
         let blob = BlobInfo {
             ethereum_block_number: block_id as u64,
             versioned_hash: hash,
-            data: blob_data
+            data: blob_data,
         };
 
         res.push(blob);
@@ -62,18 +85,12 @@ pub fn serialize_blobscan_block(block: &BlobInfo) -> Result<Vec<u8>> {
 }
 
 pub async fn insert_block(block_id: u32, blobs: Vec<BlobInfo>) -> Result<(), Error> {
-
     for blob in blobs {
         let wvm_data_input = serialize_blobscan_block(&blob)?;
         let wvm_txid = send_wvm_calldata(wvm_data_input).await.unwrap();
-        let _res = ps_archive_block(
-            &block_id,
-            &wvm_txid,
-            &blob.versioned_hash,
-            &blob.data,
-        )
-        .await
-        .unwrap();
+        let _res = ps_archive_block(&block_id, &wvm_txid, &blob.versioned_hash, &blob.data)
+            .await
+            .unwrap();
         let _send_to_blobscan = send_blob_to_blobscan(&blob.versioned_hash).await.unwrap();
     }
 
