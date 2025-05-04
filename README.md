@@ -1,18 +1,12 @@
-<p align="center">
-  <a href="https://wvm.dev">
-    <img src="https://raw.githubusercontent.com/weaveVM/.github/main/profile/bg.png">
-  </a>
-</p>
-
 ## About
-`wvm-blobscan` is a data bridge built to archive Ethereum's blob data on [WeaveVM](https://wvm.dev). It grabs blocks containing eip-4844 transactions from [Blobscan](https://blobscan.com) and archive them permanently on WeaveVM..
+`wvm-blobscan` is a data bridge built to archive Ethereum's blob data on [Load Network](https://load.network). It grabs blocks containing eip-4844 transactions from [Blobscan](https://blobscan.com) and archive them permanently on Load Network.
 
 ### Prerequisites & Dependencies
 
 While the core functionality of this ETL codebase can run without web2 component dependencies, this node implementation uses [planetscale](https://planetscale.com) for cloud indexing and [shuttle.dev](https://shuttle.dev) for backend hosting. Check [.env.example](./env.example) to set up your environment variables.
 
 ```js
-blobscan_pk="" // WeaveVM Blobscan archiver PK
+blobscan_pk="" // Load Blobscan archiver PK
 
 DATABASE_HOST="" // planetscale
 DATABASE_USERNAME="" // planetscale
@@ -47,7 +41,7 @@ graph TD
 ### Retrieve blob data and the associated archive txid by VersionedHash
 
 ```bash
-curl -X GET https://blobscan.wvm.network/v1/blob/$BLOB_VERSIONED_HASH
+curl -X GET https://blobscan.load.rs/v1/blob/$BLOB_VERSIONED_HASH
 ```
 
 Returns the res in the format as in below:
@@ -64,7 +58,7 @@ pub struct PsGetBlockByVersionedHash {
 ### Retrieve Archiver stats
 
 ```bash
-curl -X GET https://blobscan.wvm.network/v1/stats
+curl -X GET https://blobscan.load.rs/v1/stats
 ```
 
 ## License
