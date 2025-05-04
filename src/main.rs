@@ -3,7 +3,7 @@ use {
     std::sync::Arc,
     tokio::sync::RwLock,
     utils::{
-        blobscan::{get_block_by_id, insert_block, get_blobs_of_block}, // backfill_blobscan_blobs
+        blobscan::{insert_block, get_blobs_of_block},
         constants::FIRST_ETH_L1_EIP4844_BLOCK,
         eth::Ethereum,
         planetscale::get_latest_block_id,

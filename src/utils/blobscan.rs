@@ -1,27 +1,10 @@
 use {
     crate::utils::{env_var::get_env_var, planetscale::{ps_archive_block, ps_get_all_versioned_hashes_paginated}, types::BlobInfo, wvm::send_wvm_calldata},
     eyre::{eyre, Error, Result},
-    foundry_blob_explorers::{BlockResponse, Client},
     reqwest, serde_json::{self, Value},
     std::io::{Read, Write},
 };
 
-pub async fn get_block_by_id(block_id: u32) -> Result<BlockResponse, Error> {
-    println!("GETTING BLOCK: {:?}", block_id);
-    let block_id = block_id.to_string();
-    let client = Client::mainnet();
-
-    let block = client.block(block_id.parse().unwrap()).await;
-    println!("BLOCK: {:?}", block);
-
-    match block {
-        Ok(block) => Ok(block),
-        Err(e) => {
-            eprintln!("Error getting block: {:?}", e);
-            return Err(eyre!("Error getting block: {:?}", e));
-        }
-    }
-}
 
 pub async fn get_blobs_versioned_hashes_of_block(block_id: u32) -> Result<Vec<String>, eyre::Error> {
     let url = format!("https://api.blobscan.com/blocks/{}?type=canonical", block_id);

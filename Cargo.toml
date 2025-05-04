@@ -12,8 +12,6 @@ alloy-primitives = { version = "0.8", default-features = false, features = [
 alloy-rpc-types-eth = "0.13.0"
 alloy-eips = "0.13.0"
 alloy-serde = "0.13.0"
-
-foundry-blob-explorers = {git = "https://github.com/foundry-rs/block-explorers.git"}
 tokio = { version = "1.41.1", features = ["full"]}
 ethers = {version = "2.0.14", features = ["ws"]}
 eyre = "0.6.12"
@@ -25,5 +23,5 @@ dotenv = "0.15.0"
 shuttle-runtime = "0.50.0"
 shuttle-axum = "0.50.0"
 axum = "0.7.9"
-reqwest = "0.12.12"
+reqwest = {version = "0.12.12", features=["json"]}
 anyhow = "1.0.98"
