@@ -27,6 +27,7 @@ pub async fn ps_archive_block(
 ) -> Result<(), Error> {
     // format to the table VAR(66) limitation
     let wvm_calldata_txid = wvm_calldata_txid.trim_matches('"');
+    let blob_data = blob_data.trim_matches('"');
     let conn = ps_init().await;
 
     let res = query(

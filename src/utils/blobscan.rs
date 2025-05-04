@@ -33,9 +33,7 @@ pub async fn get_blobs_versioned_hashes_of_block(block_id: u32) -> Result<Vec<St
 async fn get_blob_data(versioned_hash: &str) -> Result<String, eyre::Error> {
     let url = format!("https://api.blobscan.com/blobs/{}/data", versioned_hash);
     let res = reqwest::Client::new().get(url).send().await?.text().await.unwrap_or_default();
-    let data = res.to_string();
-    // println!("\n\n\n\n BLOB DATA:\n {}\n\n\n", data);
-    Ok(data)
+    Ok(res)
 
 }
 
