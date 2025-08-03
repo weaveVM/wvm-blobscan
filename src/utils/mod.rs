@@ -5,4 +5,3 @@ pub mod eth;
 pub mod s3;
 pub mod server_handlers;
 pub mod types;
-pub mod wvm;

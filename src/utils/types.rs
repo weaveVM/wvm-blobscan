@@ -22,7 +22,7 @@ pub struct PsGetLatestArchivedBlock {
     pub blob_versioned_hash: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct BlobInfo {
     pub ethereum_block_number: u64,
     pub versioned_hash: String,

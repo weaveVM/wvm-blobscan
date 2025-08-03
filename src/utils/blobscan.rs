@@ -1,7 +1,7 @@
 use {
     crate::utils::{
         env_var::get_env_var,
-        types::BlobInfo,
+        types::BlobInfo    
     },
     eyre::{Error, Result},
     reqwest,
@@ -9,7 +9,7 @@ use {
 };
 
 pub async fn get_blobs_versioned_hashes_of_block(
-    block_id: u32,
+    block_id: u64,
 ) -> Result<Vec<String>, eyre::Error> {
     let url = format!(
         "https://api.blobscan.com/blocks/{}?type=canonical",
@@ -55,7 +55,7 @@ async fn get_blob_data(versioned_hash: &str) -> Result<String, eyre::Error> {
     Ok(res)
 }
 
-pub async fn get_blobs_of_block(block_id: u32) -> Result<Vec<BlobInfo>> {
+pub async fn get_blobs_of_block(block_id: u64) -> Result<Vec<BlobInfo>> {
     let versioned_hashes = get_blobs_versioned_hashes_of_block(block_id)
         .await
         .unwrap_or_default();

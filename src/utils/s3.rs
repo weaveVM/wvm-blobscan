@@ -1,13 +1,11 @@
 use {
     crate::utils::{
-        constants::FIRST_ETH_L1_EIP4844_BLOCK,
-        env_var::get_env_var,
+        constants::{FIRST_ETH_L1_EIP4844_BLOCK, S3_BUCKET_NAME},
         types::BlobInfo,
     },
     aws_config::BehaviorVersion,
     aws_sdk_s3::{Client, Error},
     serde_json::{json, Value},
-    std::collections::HashMap,
 };
 
 async fn s3_client() -> Client {
@@ -15,18 +13,16 @@ async fn s3_client() -> Client {
     Client::new(&config)
 }
 
-pub async fn store_blob(versioned_hash: &str, blob_data: &str, block_id: u32) -> Result<(), Error> {
+pub async fn store_blob(versioned_hash: &str, blob_data: &str, block_id: u64) -> Result<(), Error> {
     let client = s3_client().await;
-    let bucket = "blobscan";
-    let key = format!("/{}", versioned_hash);
 
-    let object_data = json!({"EthereumBlockId": block_id, "VersionedHash": versioned_hash, "BlobData": blob_data});
+    let object_data = BlobInfo::from(block_id, versioned_hash.to_string(), blob_data.to_string());
     let blob  = serde_json::to_vec(&object_data).unwrap();
     
     client
         .put_object()
-        .bucket(bucket)
-        .key(&key)
+        .bucket(S3_BUCKET_NAME)
+        .key(versioned_hash)
         .body(blob.into())
         .content_type("application/json")
         .send()
@@ -37,118 +33,30 @@ pub async fn store_blob(versioned_hash: &str, blob_data: &str, block_id: u32) ->
 
 pub async fn get_blob_by_versioned_hash(versioned_hash: &str) -> Option<Value> {
     let client = s3_client().await;
-    let bucket = "blobscan";
+
     
-    let objects = client
-        .list_objects()
-        .bucket(bucket)
+    let blob = client
+        .get_object()
+        .bucket(S3_BUCKET_NAME)
+        .key(versioned_hash)
         .send()
         .await
         .ok()?;
+
+    let body = blob.body.collect().await.ok()?.to_vec();
+    let data : BlobInfo = serde_json::from_slice(&body).unwrap_or_default();
+    let res = serde_json::to_value(&data).unwrap();
+    return Some(res)
     
-    for object in objects.contents() {
-        if let Some(key) = object.key() {
-            if key.ends_with(versioned_hash) {
-                let parts: Vec<&str> = key.split('/').collect();
-                if parts.len() == 2 {
-                    let block_id = parts[0].parse::<u32>().ok()?;
-                    
-                    let blob_data = client
-                        .get_object()
-                        .bucket(bucket)
-                        .key(key)
-                        .send()
-                        .await
-                        .ok()?;
-                    
-                    let body = blob_data.body.collect().await.ok()?;
-                    let data = String::from_utf8(body.to_vec()).ok()?;
-                    
-                    return Some(serde_json::json!({
-                        "EthereumBlockId": block_id,
-                        "VersionedHash": versioned_hash,
-                        "BlobData": data
-                    }));
-                }
-            }
-        }
     }
-    
-    None
+
+pub async fn get_latest_block_id() -> u64 {
+    // todo
+    return FIRST_ETH_L1_EIP4844_BLOCK;
 }
 
-pub async fn get_latest_block_id() -> u32 {
-    let client = s3_client().await;
-    let bucket = "blobscan";
-    
-    let objects = client
-        .list_objects()
-        .bucket(bucket)
-        .send()
-        .await;
-    
-    match objects {
-        Ok(response) => {
-            let mut max_block_id = FIRST_ETH_L1_EIP4844_BLOCK;
-            
-            for object in response.contents() {
-                if let Some(key) = object.key() {
-                    let parts: Vec<&str> = key.split('/').collect();
-                    if parts.len() == 2 {
-                        if let Ok(block_id) = parts[0].parse::<u32>() {
-                            if block_id > max_block_id {
-                                max_block_id = block_id;
-                            }
-                        }
-                    }
-                }
-            }
-            
-            max_block_id
-        }
-        Err(_) => FIRST_ETH_L1_EIP4844_BLOCK,
-    }
-}
 
-pub async fn get_stats() -> Value {
-    let latest_block_id = get_latest_block_id().await;
-    let client = s3_client().await;
-    let bucket = "blobscan";
-    
-    let objects = client
-        .list_objects()
-        .bucket(bucket)
-        .send()
-        .await;
-    
-    match objects {
-        Ok(response) => {
-            for object in response.contents() {
-                if let Some(key) = object.key() {
-                    let parts: Vec<&str> = key.split('/').collect();
-                    if parts.len() == 2 {
-                        if let Ok(block_id) = parts[0].parse::<u32>() {
-                            if block_id == latest_block_id {
-                                return serde_json::json!({
-                                    "EthereumBlockId": latest_block_id,
-                                    "VersionedHash": parts[1]
-                                });
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        Err(_) => {}
-    }
-    
-    serde_json::json!({
-        "EthereumBlockId": latest_block_id,
-        "VersionedHash": null
-    })
-}
-
-pub async fn insert_block(block_id: u32, blobs: Vec<BlobInfo>) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn insert_block(block_id: u64, blobs: Vec<BlobInfo>) -> Result<(), Box<dyn std::error::Error>> {
     for blob in blobs {
         store_blob(&blob.versioned_hash, &blob.data, block_id).await?;
     }
