@@ -3,27 +3,23 @@ use {
     std::sync::Arc,
     tokio::sync::RwLock,
     utils::{
-        blobscan::{get_blobs_of_block, insert_block},
+        blobscan::get_blobs_of_block,
         constants::FIRST_ETH_L1_EIP4844_BLOCK,
         eth::Ethereum,
-        planetscale::get_latest_block_id,
+        s3::{get_latest_block_id, insert_block},
         server_handlers::{handle_get_blob, handle_get_stats, handle_weave_gm},
+        env_var::load_env_vars,
     },
 };
 
 mod utils;
 
-#[shuttle_runtime::main]
-async fn main(
-    #[shuttle_runtime::Secrets] secrets: shuttle_runtime::SecretStore,
-) -> shuttle_axum::ShuttleAxum {
-    // load secrets from Shuttle.toml into env var;
-    secrets.into_iter().for_each(|(key, val)| {
-        std::env::set_var(key, val);
-    });
+#[tokio::main]
+async fn main() {
+    load_env_vars();
     let router = Router::new()
         .route("/", get(handle_weave_gm))
-        .route("/v1/blob/:versioned_hash", get(handle_get_blob))
+        .route("/v1/blob/{versioned_hash}", get(handle_get_blob))
         .route("/v1/stats", get(handle_get_stats));
 
     let block_number = Ethereum::get_latest_eth_block().await.unwrap();
@@ -45,10 +41,11 @@ async fn main(
                 match blobs {
                     Ok(blobs) => {
                         println!("INSERTING: {:?} BLOBS", blobs.len());
+                        println!("BLOBS: {:?}\n\n\n", blobs);
                         let res = insert_block(target_block_id, blobs).await;
                         match res {
-                            Ok(res) => latest_archived_block += 1,
-                            _ => eprintln!("error updating planetscale"),
+                            Ok(_) => latest_archived_block += 1,
+                            Err(e) => eprintln!("error updating s3: {}", e),
                         }
                     }
                     Err(e) => {
@@ -69,5 +66,7 @@ async fn main(
         }
     });
 
-    Ok(router.into())
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
+    println!("Server running on http://0.0.0.0:3000");
+    axum::serve(listener, router).await.unwrap();
 }

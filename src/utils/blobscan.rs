@@ -1,14 +1,11 @@
 use {
     crate::utils::{
         env_var::get_env_var,
-        planetscale::{ps_archive_block, ps_get_all_versioned_hashes_paginated},
         types::BlobInfo,
-        wvm::send_wvm_calldata,
     },
-    eyre::{eyre, Error, Result},
+    eyre::{Error, Result},
     reqwest,
     serde_json::{self, Value},
-    std::io::{Read, Write},
 };
 
 pub async fn get_blobs_versioned_hashes_of_block(
@@ -80,37 +77,7 @@ pub async fn get_blobs_of_block(block_id: u32) -> Result<Vec<BlobInfo>> {
 
 pub fn serialize_blobscan_block(block: &BlobInfo) -> Result<Vec<u8>> {
     let data = serde_json::to_vec(&block)?;
-    let compressed_data = brotli_compress(&data);
-    Ok(compressed_data)
-}
-
-pub async fn insert_block(block_id: u32, blobs: Vec<BlobInfo>) -> Result<(), Error> {
-    for blob in blobs {
-        let wvm_data_input = serialize_blobscan_block(&blob)?;
-        let wvm_txid = send_wvm_calldata(wvm_data_input).await.unwrap();
-        let _res = ps_archive_block(&block_id, &wvm_txid, &blob.versioned_hash, &blob.data)
-            .await
-            .unwrap();
-        let _send_to_blobscan = send_blob_to_blobscan(&blob.versioned_hash).await.unwrap();
-    }
-
-    Ok(())
-}
-
-fn brotli_compress(input: &[u8]) -> Vec<u8> {
-    let mut writer = brotli::CompressorWriter::new(Vec::new(), 4096, 11, 22);
-    writer.write_all(input).unwrap();
-    writer.into_inner()
-}
-
-fn brotli_decompress(input: Vec<u8>) -> Vec<u8> {
-    let mut decompressed_data = Vec::new();
-    let mut decompressor = brotli::Decompressor::new(input.as_slice(), 4096); // 4096 is the buffer size
-
-    decompressor
-        .read_to_end(&mut decompressed_data)
-        .expect("Decompression failed");
-    decompressed_data
+    Ok(data)
 }
 
 pub async fn send_blob_to_blobscan(blob_hash: &str) -> Result<(), Error> {
