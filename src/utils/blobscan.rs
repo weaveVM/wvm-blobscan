@@ -8,6 +8,12 @@ use {
     serde_json::{self, Value},
 };
 
+use bundles_rs::ans104::data_item::DataItem;
+use bundles_rs::ans104::tags::Tag;
+use bundles_rs::crypto::arweave::ArweaveSigner;
+use bundles_rs::crypto::ethereum::EthereumSigner;
+
+
 pub async fn get_blobs_versioned_hashes_of_block(
     block_id: u64,
 ) -> Result<Vec<String>, eyre::Error> {
@@ -75,9 +81,15 @@ pub async fn get_blobs_of_block(block_id: u64) -> Result<Vec<BlobInfo>> {
     Ok(res)
 }
 
-pub fn serialize_blobscan_block(block: &BlobInfo) -> Result<Vec<u8>> {
+pub fn serialize_blobscan_block(block: &BlobInfo) -> Result<(Vec<u8>, String), Error> {
     let data = serde_json::to_vec(&block)?;
-    Ok(data)
+    let tags = vec![Tag::new("content-type", "application/json"), Tag::new("Protocol", "Load-Blobscan")];
+    // let pk = get_env_var("blobscan_pk")?;
+    // let private_key = hex::decode(pk)?;
+    // let signer = EthereumSigner::from_bytes(&private_key)?;
+    let signer = ArweaveSigner::random().unwrap();
+    let dataitem = DataItem::build_and_sign(&signer, None, None, tags, data).unwrap();
+    Ok((dataitem.to_bytes().unwrap(), dataitem.arweave_id()))
 }
 
 pub async fn send_blob_to_blobscan(blob_hash: &str) -> Result<(), Error> {

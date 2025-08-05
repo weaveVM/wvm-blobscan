@@ -27,3 +27,4 @@ anyhow = "1.0.98"
 bundles_rs = { git = "https://github.com/loadnetwork/bundles-rs.git", branch = "main"}
 aws-config = { version= "1.8.3", features = ["behavior-version-latest"] }
 aws-sdk-s3= { version = "1.100.0", features = ["rt-tokio"] }
+hex = "0.4.3"

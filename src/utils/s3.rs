@@ -9,6 +9,7 @@ use {
 };
 
 use crate::utils::env_var::get_env_var;
+use crate::utils::blobscan::serialize_blobscan_block;
 
 async fn s3_client() -> Client {
     let config = aws_config::defaults(BehaviorVersion::latest())
@@ -30,15 +31,15 @@ pub async fn store_blob(versioned_hash: &str, blob_data: &str, block_id: u64) ->
     let client = s3_client().await;
 
     let object_data = BlobInfo::from(block_id, versioned_hash.to_string(), blob_data.to_string());
-    let blob  = serde_json::to_vec(&object_data).unwrap();
-    let key: String = format!("{}/{}.json", S3_BUCKET_NAME, versioned_hash);
+    let blob = serialize_blobscan_block(&object_data).unwrap();
+    let key: String = format!("{}/dataitems/{}.ans104", S3_BUCKET_NAME, blob.1);
     
     client
         .put_object()
         .bucket(S3_BUCKET_NAME)
         .key(key)
-        .body(blob.into())
-        .content_type("application/json")
+        .body(blob.0.into())
+        .content_type("application/octet-stream")
         .send()
         .await?;
     
@@ -47,8 +48,7 @@ pub async fn store_blob(versioned_hash: &str, blob_data: &str, block_id: u64) ->
 
 pub async fn get_blob_by_versioned_hash(versioned_hash: &str) -> Option<Value> {
     let client = s3_client().await;
-
-    let key: String = format!("{}/{}.json", S3_BUCKET_NAME, versioned_hash);
+    let key: String = format!("{}/dataitems/{}.ans104", S3_BUCKET_NAME, versioned_hash);
 
     
     let blob = client
