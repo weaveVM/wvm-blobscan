@@ -3,13 +3,26 @@ use {
         constants::{FIRST_ETH_L1_EIP4844_BLOCK, S3_BUCKET_NAME},
         types::BlobInfo,
     },
-    aws_config::BehaviorVersion,
+    aws_config::{BehaviorVersion, Region},
     aws_sdk_s3::{Client, Error},
     serde_json::{json, Value},
 };
 
+use crate::utils::env_var::get_env_var;
+
 async fn s3_client() -> Client {
-    let config = aws_config::defaults(BehaviorVersion::latest()).load().await;
+    let config = aws_config::defaults(BehaviorVersion::latest())
+        .endpoint_url(get_env_var("AWS_ENDPOINT_URL").unwrap())
+        .region(Region::new(get_env_var("AWS_REGION").unwrap())) 
+        .credentials_provider(aws_sdk_s3::config::Credentials::new(
+            get_env_var("AWS_ACCESS_KEY_ID").unwrap(),
+            get_env_var("AWS_SECRET_ACCESS_KEY").unwrap(),
+            None, 
+            None, 
+            "custom"
+        ))
+        .load()
+        .await;
     Client::new(&config)
 }
 
@@ -18,11 +31,12 @@ pub async fn store_blob(versioned_hash: &str, blob_data: &str, block_id: u64) ->
 
     let object_data = BlobInfo::from(block_id, versioned_hash.to_string(), blob_data.to_string());
     let blob  = serde_json::to_vec(&object_data).unwrap();
+    let key: String = format!("{}/{}.json", S3_BUCKET_NAME, versioned_hash);
     
     client
         .put_object()
         .bucket(S3_BUCKET_NAME)
-        .key(versioned_hash)
+        .key(key)
         .body(blob.into())
         .content_type("application/json")
         .send()
@@ -34,11 +48,13 @@ pub async fn store_blob(versioned_hash: &str, blob_data: &str, block_id: u64) ->
 pub async fn get_blob_by_versioned_hash(versioned_hash: &str) -> Option<Value> {
     let client = s3_client().await;
 
+    let key: String = format!("{}/{}.json", S3_BUCKET_NAME, versioned_hash);
+
     
     let blob = client
         .get_object()
         .bucket(S3_BUCKET_NAME)
-        .key(versioned_hash)
+        .key(key)
         .send()
         .await
         .ok()?;

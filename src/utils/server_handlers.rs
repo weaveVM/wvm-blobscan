@@ -5,7 +5,7 @@ use {
 };
 
 pub async fn handle_weave_gm() -> &'static str {
-    "WeaveGM!"
+    "load it up [^^]"
 }
 
 pub async fn handle_get_blob(Path(versioned_hash): Path<String>) -> Json<Value> {

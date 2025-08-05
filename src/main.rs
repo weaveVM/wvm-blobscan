@@ -19,7 +19,7 @@ async fn main() {
     load_env_vars();
     let router = Router::new()
         .route("/", get(handle_weave_gm))
-        .route("/v1/blob/{versioned_hash}", get(handle_get_blob));
+        .route("/v1/blob/:versioned_hash", get(handle_get_blob));
     
     let block_number = Ethereum::get_latest_eth_block().await.unwrap();
     let block_number = Arc::new(RwLock::new(block_number));

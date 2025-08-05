@@ -7,21 +7,6 @@ pub struct VersionedHashOnly {
     pub versioned_hash: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct PsGetBlockByVersionedHash {
-    pub ethereum_block_number: u64,
-    pub wvm_archive_txid: String,
-    pub versioned_hash: String,
-    pub blob_data: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct PsGetLatestArchivedBlock {
-    pub last_archived_eth_block: u64,
-    pub wvm_archive_txid: String,
-    pub blob_versioned_hash: String,
-}
-
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct BlobInfo {
     pub ethereum_block_number: u64,
