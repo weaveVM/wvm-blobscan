@@ -1,17 +1,12 @@
-use {
-    crate::utils::{
-        env_var::get_env_var,
-        types::BlobInfo    
-    },
-    eyre::{Error, Result},
-    reqwest,
-    serde_json::{self, Value},
-};
-
 use bundles_rs::ans104::data_item::DataItem;
 use bundles_rs::ans104::tags::Tag;
 use bundles_rs::crypto::arweave::ArweaveSigner;
+use eyre::{Error, Result};
+use reqwest;
+use serde_json::{self, Value};
 
+use crate::utils::env_var::get_env_var;
+use crate::utils::types::BlobInfo;
 
 pub async fn get_blobs_versioned_hashes_of_block(
     block_id: u64,
@@ -82,7 +77,10 @@ pub async fn get_blobs_of_block(block_id: u64) -> Result<Vec<BlobInfo>> {
 
 pub fn serialize_blobscan_block(block: &BlobInfo) -> Result<(Vec<u8>, String), Error> {
     let data = serde_json::to_vec(&block)?;
-    let tags = vec![Tag::new("content-type", "application/json"), Tag::new("Protocol", "Load-Blobscan")];
+    let tags = vec![
+        Tag::new("content-type", "application/json"),
+        Tag::new("Protocol", "Load-Blobscan"),
+    ];
     let jwk = get_env_var("blobscan_agent_pk")?;
     let signer = ArweaveSigner::from_jwk_str(&jwk).unwrap();
     let dataitem = DataItem::build_and_sign(&signer, None, None, tags, data).unwrap();

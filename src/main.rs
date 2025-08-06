@@ -5,10 +5,10 @@ use {
     utils::{
         blobscan::get_blobs_of_block,
         constants::FIRST_ETH_L1_EIP4844_BLOCK,
+        env_var::load_env_vars,
         eth::Ethereum,
         s3::{get_latest_block_id, insert_block},
         server_handlers::{handle_get_blob, handle_weave_gm},
-        env_var::load_env_vars,
     },
 };
 
@@ -20,7 +20,7 @@ async fn main() {
     let router = Router::new()
         .route("/", get(handle_weave_gm))
         .route("/v1/blob/:versioned_hash", get(handle_get_blob));
-    
+
     let block_number = Ethereum::get_latest_eth_block().await.unwrap();
     let block_number = Arc::new(RwLock::new(block_number));
     let reader_block_number = block_number.clone();

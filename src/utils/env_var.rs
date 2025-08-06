@@ -1,4 +1,5 @@
-use {dotenv::dotenv, std::env};
+use dotenv::dotenv;
+use std::env;
 
 pub fn load_env_vars() {
     dotenv().ok();

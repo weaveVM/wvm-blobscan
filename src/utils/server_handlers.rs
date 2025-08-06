@@ -1,8 +1,7 @@
-use {
-    crate::utils::s3::{get_blob_by_versioned_hash},
-    axum::{extract::Path, response::Json},
-    serde_json::Value,
-};
+use crate::utils::s3::get_blob_by_versioned_hash;
+use axum::extract::Path;
+use axum::response::Json;
+use serde_json::Value;
 
 pub async fn handle_weave_gm() -> &'static str {
     "load it up [^^]"
