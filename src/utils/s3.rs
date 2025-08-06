@@ -1,6 +1,6 @@
 use {
     crate::utils::{
-        constants::{FIRST_ETH_L1_EIP4844_BLOCK, S3_BUCKET_NAME},
+        constants::{FIRST_ETH_L1_EIP4844_BLOCK},
         types::BlobInfo,
     },
     aws_config::{BehaviorVersion, Region},
@@ -29,14 +29,16 @@ async fn s3_client() -> Client {
 
 pub async fn store_blob(versioned_hash: &str, blob_data: &str, block_id: u64) -> Result<(), Error> {
     let client = s3_client().await;
+    let s3_bucket_name = get_env_var("S3_BUCKET_NAME").unwrap();
+    let s3_dir_name = get_env_var("S3_DIR_NAME").unwrap();
 
     let object_data = BlobInfo::from(block_id, versioned_hash.to_string(), blob_data.to_string());
     let blob = serialize_blobscan_block(&object_data).unwrap();
-    let key: String = format!("{}/dataitems/{}.ans104", S3_BUCKET_NAME, blob.1);
+    let key: String = format!("{}/{}/{}.ans104", s3_bucket_name, s3_dir_name, blob.1);
     
     client
         .put_object()
-        .bucket(S3_BUCKET_NAME)
+        .bucket(s3_bucket_name)
         .key(key)
         .body(blob.0.into())
         .content_type("application/octet-stream")
@@ -48,12 +50,14 @@ pub async fn store_blob(versioned_hash: &str, blob_data: &str, block_id: u64) ->
 
 pub async fn get_blob_by_versioned_hash(versioned_hash: &str) -> Option<Value> {
     let client = s3_client().await;
-    let key: String = format!("{}/dataitems/{}.ans104", S3_BUCKET_NAME, versioned_hash);
+    let s3_bucket_name = get_env_var("S3_BUCKET_NAME").unwrap();
+    let s3_dir_name = get_env_var("S3_DIR_NAME").unwrap();
+    let key: String = format!("{}/{}/{}.ans104", s3_bucket_name, s3_dir_name, versioned_hash);
 
     
     let blob = client
         .get_object()
-        .bucket(S3_BUCKET_NAME)
+        .bucket(s3_bucket_name)
         .key(key)
         .send()
         .await

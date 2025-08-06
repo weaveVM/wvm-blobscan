@@ -1,6 +1,6 @@
 [package]
-name = "load-blobscan"
-version = "0.2.0"
+name = "blobscan-agent"
+version = "0.3.0"
 edition = "2021"
 
 [dependencies]

@@ -1263,6 +1263,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "blobscan-agent"
+version = "0.3.0"
+dependencies = [
+ "alloy-chains",
+ "alloy-eips",
+ "alloy-primitives",
+ "alloy-rpc-types-eth",
+ "alloy-serde",
+ "anyhow",
+ "aws-config",
+ "aws-sdk-s3",
+ "axum",
+ "brotli",
+ "bundles_rs",
+ "dotenv",
+ "ethers",
+ "eyre",
+ "hex",
+ "reqwest 0.12.22",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tokio-util",
+ "tower 0.4.13",
+]
+
+[[package]]
 name = "block-buffer"
 version = "0.10.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3629,33 +3656,6 @@ name = "litemap"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "241eaef5fd12c88705a01fc1066c48c4b36e0dd4377dcdc7ec3942cea7a69956"
-
-[[package]]
-name = "load-blobscan"
-version = "0.2.0"
-dependencies = [
- "alloy-chains",
- "alloy-eips",
- "alloy-primitives",
- "alloy-rpc-types-eth",
- "alloy-serde",
- "anyhow",
- "aws-config",
- "aws-sdk-s3",
- "axum",
- "brotli",
- "bundles_rs",
- "dotenv",
- "ethers",
- "eyre",
- "hex",
- "reqwest 0.12.22",
- "serde",
- "serde_json",
- "tokio",
- "tokio-util",
- "tower 0.4.13",
-]
 
 [[package]]
 name = "lock_api"
