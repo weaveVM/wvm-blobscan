@@ -2,6 +2,7 @@ use crate::utils::blobscan::serialize_blobscan_block;
 use crate::utils::constants::FIRST_ETH_L1_EIP4844_BLOCK;
 use crate::utils::env_var::get_env_var;
 use crate::utils::types::BlobInfo;
+use crate::utils::indexer::insert_kv;
 use aws_config::{BehaviorVersion, Region};
 use aws_sdk_s3::{Client, Error};
 use serde_json::Value;
@@ -39,6 +40,8 @@ pub async fn store_blob(versioned_hash: &str, blob_data: &str, block_id: u64) ->
         .content_type("application/octet-stream")
         .send()
         .await?;
+
+    let _ = insert_kv(versioned_hash, &blob.1).await.unwrap();
 
     Ok(())
 }

@@ -1,16 +1,14 @@
-use {
-    axum::{routing::get, Router},
-    std::sync::Arc,
-    tokio::sync::RwLock,
-    utils::{
-        blobscan::get_blobs_of_block,
-        constants::FIRST_ETH_L1_EIP4844_BLOCK,
-        env_var::load_env_vars,
-        eth::Ethereum,
-        s3::{get_latest_block_id, insert_block},
-        server_handlers::{handle_get_blob, handle_weave_gm},
-    },
-};
+use axum::{routing::get, Router};
+use std::sync::Arc;
+use tokio::sync::RwLock;
+use crate::utils::blobscan::get_blobs_of_block;
+use crate::utils::constants::FIRST_ETH_L1_EIP4844_BLOCK;
+use crate::utils::env_var::load_env_vars;
+use crate::utils::eth::Ethereum;
+use crate::utils::s3::{get_latest_block_id, insert_block};
+use crate::utils::server_handlers::{handle_get_blob, handle_route};
+
+
 
 mod utils;
 
@@ -18,7 +16,7 @@ mod utils;
 async fn main() {
     load_env_vars();
     let router = Router::new()
-        .route("/", get(handle_weave_gm))
+        .route("/", get(handle_route))
         .route("/v1/blob/:versioned_hash", get(handle_get_blob));
 
     let block_number = Ethereum::get_latest_eth_block().await.unwrap();

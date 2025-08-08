@@ -28,3 +28,4 @@ bundles_rs = { git = "https://github.com/loadnetwork/bundles-rs.git", branch = "
 aws-config = { version= "1.8.3", features = ["behavior-version-latest"] }
 aws-sdk-s3= { version = "1.100.0", features = ["rt-tokio"] }
 hex = "0.4.3"
+planetscale-driver = "0.5.1"
