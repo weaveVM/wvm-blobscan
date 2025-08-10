@@ -1,16 +1,14 @@
+use anyhow::Error;
 use bundles_rs::ans104::data_item::DataItem;
 use bundles_rs::ans104::tags::Tag;
 use bundles_rs::crypto::arweave::ArweaveSigner;
-use anyhow::Error;
 use reqwest;
 use serde_json::{self, Value};
 
 use crate::utils::env_var::get_env_var;
 use crate::utils::types::BlobInfo;
 
-pub async fn get_blobs_versioned_hashes_of_block(
-    block_id: u64,
-) -> Result<Vec<String>, Error> {
+pub async fn get_blobs_versioned_hashes_of_block(block_id: u64) -> Result<Vec<String>, Error> {
     let url = format!(
         "https://api.blobscan.com/blocks/{}?type=canonical",
         block_id

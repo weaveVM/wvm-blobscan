@@ -1,11 +1,11 @@
 use crate::utils::blobscan::serialize_blobscan_block;
 use crate::utils::env_var::get_env_var;
-use crate::utils::types::BlobInfo;
 use crate::utils::indexer::insert_kv;
+use crate::utils::types::BlobInfo;
+use anyhow::{anyhow, Error};
 use aws_config::{BehaviorVersion, Region};
 use aws_sdk_s3::Client;
 use serde_json::Value;
-use anyhow::{anyhow, Error};
 
 async fn s3_client() -> Result<Client, Error> {
     let config = aws_config::defaults(BehaviorVersion::latest())
@@ -41,7 +41,9 @@ pub async fn store_blob(versioned_hash: &str, blob_data: &str, block_id: u64) ->
         .send()
         .await?;
 
-    let _ = insert_kv(versioned_hash, &blob.1, block_id).await.map_err(|e| anyhow!(e.to_string()))?;
+    let _ = insert_kv(versioned_hash, &blob.1, block_id)
+        .await
+        .map_err(|e| anyhow!(e.to_string()))?;
 
     Ok(())
 }
@@ -68,10 +70,7 @@ pub async fn get_blob_by_versioned_hash(versioned_hash: &str) -> Result<Value, E
     Ok(res)
 }
 
-pub async fn insert_block(
-    block_id: u64,
-    blobs: Vec<BlobInfo>,
-) -> Result<(), Error> {
+pub async fn insert_block(block_id: u64, blobs: Vec<BlobInfo>) -> Result<(), Error> {
     for blob in blobs {
         store_blob(&blob.versioned_hash, &blob.data, block_id).await?;
     }

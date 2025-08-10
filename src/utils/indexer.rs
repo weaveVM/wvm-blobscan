@@ -1,21 +1,20 @@
-
 use crate::utils::env_var::get_env_var;
-use planetscale_driver::{query, Database, PSConnection};
-use serde_json::Value;
 use anyhow::{anyhow, Error};
+use planetscale_driver::{query, Database, PSConnection};
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
 #[derive(Debug, Default, Database, Serialize, Deserialize)]
 pub(crate) struct GetVersionedHash {
     pub versioned_hash: String,
-    pub arweave_txid: String
-} 
+    pub arweave_txid: String,
+}
 
 #[derive(Debug, Default, Database, Serialize, Deserialize)]
 pub(crate) struct GetIndexerStats {
     pub versioned_hash: String,
     pub arweave_txid: String,
-    pub ethereum_block_number: u64
+    pub ethereum_block_number: u64,
 }
 
 async fn ps_init() -> PSConnection {
@@ -28,7 +27,11 @@ async fn ps_init() -> PSConnection {
     conn
 }
 
-pub async fn insert_kv(versioned_hash: &str, arweave_txid: &str, ethereum_block_number: u64) -> Result<(), Error> {
+pub async fn insert_kv(
+    versioned_hash: &str,
+    arweave_txid: &str,
+    ethereum_block_number: u64,
+) -> Result<(), Error> {
     let client = ps_init().await;
 
     let res = query("INSERT INTO blobscan_arweave_mapping(versioned_hash, arweave_txid, ethereum_block_number) VALUES(\"$0\", \"$1\", $2)",)
@@ -48,14 +51,21 @@ pub async fn get_versioned_hash_value(versioned_hash: &str) -> Result<Value, Err
         "SELECT versioned_hash, arweave_txid FROM blobscan_arweave_mapping WHERE versioned_hash = '{}' LIMIT 1;",
         versioned_hash
     );
-    let res: GetVersionedHash = query(&query_formatted).fetch_one(&client).await.unwrap_or_default();
+    let res: GetVersionedHash = query(&query_formatted)
+        .fetch_one(&client)
+        .await
+        .unwrap_or_default();
 
     Ok(serde_json::to_value(res)?)
 }
 
 pub async fn get_latest_block_id() -> u64 {
     let client = ps_init().await;
-    let res : u64 = query("SELECT MAX(ethereum_block_number) FROM blobscan_arweave_mapping LIMIT 1;").fetch_scalar(&client).await.unwrap();
+    let res: u64 =
+        query("SELECT MAX(ethereum_block_number) FROM blobscan_arweave_mapping LIMIT 1;")
+            .fetch_scalar(&client)
+            .await
+            .unwrap();
     return res;
 }
 

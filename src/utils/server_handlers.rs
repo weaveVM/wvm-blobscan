@@ -1,4 +1,4 @@
-use crate::utils::indexer::{get_versioned_hash_value, get_indexer_stats};
+use crate::utils::indexer::{get_indexer_stats, get_versioned_hash_value};
 use axum::extract::Path;
 use axum::response::Json;
 use serde_json::Value;
