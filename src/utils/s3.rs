@@ -71,8 +71,12 @@ pub async fn get_blob_by_versioned_hash(versioned_hash: &str) -> Result<Value, E
 }
 
 pub async fn insert_block(block_id: u64, blobs: Vec<BlobInfo>) -> Result<(), Error> {
+    let mut hashes: Vec<String> = Vec::new();
     for blob in blobs {
-        store_blob(&blob.versioned_hash, &blob.data, block_id).await?;
+        if !hashes.contains(&blob.versioned_hash) {
+            store_blob(&blob.versioned_hash, &blob.data, block_id).await?;
+            hashes.push(blob.versioned_hash);
+        }
     }
     Ok(())
 }

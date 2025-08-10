@@ -42,7 +42,7 @@ async fn main() {
                         let res = insert_block(target_block_id, blobs).await;
                         match res {
                             Ok(_) => latest_archived_block += 1,
-                            Err(e) => eprintln!("error updating s3: {}", e),
+                            Err(e) => {eprintln!("error updating s3: {}", e); latest_archived_block += 1},
                         }
                     }
                     Err(e) => {

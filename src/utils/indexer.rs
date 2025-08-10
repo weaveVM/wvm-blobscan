@@ -1,4 +1,5 @@
 use crate::utils::env_var::get_env_var;
+use crate::utils::constants::FIRST_ETH_L1_EIP4844_BLOCK;
 use anyhow::{anyhow, Error};
 use planetscale_driver::{query, Database, PSConnection};
 use serde::{Deserialize, Serialize};
@@ -65,7 +66,7 @@ pub async fn get_latest_block_id() -> u64 {
         query("SELECT MAX(ethereum_block_number) FROM blobscan_arweave_mapping LIMIT 1;")
             .fetch_scalar(&client)
             .await
-            .unwrap();
+            .unwrap_or(FIRST_ETH_L1_EIP4844_BLOCK);
     return res;
 }
 
