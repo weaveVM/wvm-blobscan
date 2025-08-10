@@ -1,6 +1,7 @@
 
 use crate::utils::env_var::get_env_var;
 use crate::utils::constants::FIRST_ETH_L1_EIP4844_BLOCK;
+use ethers::types::Res;
 use planetscale_driver::{query, Database, PSConnection};
 use serde_json::Value;
 use anyhow::{anyhow, Error};
@@ -11,6 +12,13 @@ pub(crate) struct GetVersionedHash {
     pub versioned_hash: String,
     pub arweave_txid: String
 } 
+
+#[derive(Debug, Default, Database, Serialize, Deserialize)]
+pub(crate) struct GetIndexerStats {
+    pub versioned_hash: String,
+    pub arweave_txid: String,
+    pub ethereum_block_number: u64
+}
 
 async fn ps_init() -> PSConnection {
     let host = get_env_var("DATABASE_HOST").unwrap();
@@ -48,6 +56,13 @@ pub async fn get_versioned_hash_value(versioned_hash: &str) -> Result<Value, Err
 }
 
 pub async fn get_latest_block_id() -> u64 {
-    // todo
-    return FIRST_ETH_L1_EIP4844_BLOCK;
+    let client = ps_init().await;
+    let res : u64 = query("SELECT MAX(ethereum_block_number) FROM blobscan_arweave_mapping LIMIT 1;").fetch_scalar(&client).await.unwrap();
+    return res;
+}
+
+pub async fn get_indexer_stats() -> Result<Value, Error> {
+    let client = ps_init().await;
+    let res: GetIndexerStats = query("SELECT versioned_hash, arweave_txid, ethereum_block_number FROM blobscan_arweave_mapping WHERE ethereum_block_number = (SELECT MAX(ethereum_block_number) FROM blobscan_arweave_mapping) LIMIT 1;").fetch_one(&client).await.unwrap();
+    Ok(serde_json::to_value(&res).unwrap())
 }

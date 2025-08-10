@@ -6,7 +6,7 @@ use crate::utils::constants::FIRST_ETH_L1_EIP4844_BLOCK;
 use crate::utils::env_var::load_env_vars;
 use crate::utils::eth::Ethereum;
 use crate::utils::s3::insert_block;
-use crate::utils::server_handlers::{handle_get_blob, handle_route};
+use crate::utils::server_handlers::{handle_get_blob, handle_route, handle_get_stats};
 use crate::utils::indexer::get_latest_block_id;
 
 
@@ -18,7 +18,8 @@ async fn main() {
     load_env_vars();
     let router = Router::new()
         .route("/", get(handle_route))
-        .route("/v1/blob/:versioned_hash", get(handle_get_blob));
+        .route("/v1/blob/:versioned_hash", get(handle_get_blob))
+        .route("/v1/stats", get(handle_get_stats));
 
     let block_number = Ethereum::get_latest_eth_block().await.unwrap();
     let block_number = Arc::new(RwLock::new(block_number));
