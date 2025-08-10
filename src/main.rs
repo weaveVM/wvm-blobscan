@@ -5,8 +5,9 @@ use crate::utils::blobscan::get_blobs_of_block;
 use crate::utils::constants::FIRST_ETH_L1_EIP4844_BLOCK;
 use crate::utils::env_var::load_env_vars;
 use crate::utils::eth::Ethereum;
-use crate::utils::s3::{get_latest_block_id, insert_block};
+use crate::utils::s3::insert_block;
 use crate::utils::server_handlers::{handle_get_blob, handle_route};
+use crate::utils::indexer::get_latest_block_id;
 
 
 

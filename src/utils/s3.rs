@@ -1,5 +1,4 @@
 use crate::utils::blobscan::serialize_blobscan_block;
-use crate::utils::constants::FIRST_ETH_L1_EIP4844_BLOCK;
 use crate::utils::env_var::get_env_var;
 use crate::utils::types::BlobInfo;
 use crate::utils::indexer::insert_kv;
@@ -41,7 +40,7 @@ pub async fn store_blob(versioned_hash: &str, blob_data: &str, block_id: u64) ->
         .send()
         .await?;
 
-    let _ = insert_kv(versioned_hash, &blob.1).await.unwrap();
+    let _ = insert_kv(versioned_hash, &blob.1, block_id).await.unwrap();
 
     Ok(())
 }
@@ -67,11 +66,6 @@ pub async fn get_blob_by_versioned_hash(versioned_hash: &str) -> Option<Value> {
     let data: BlobInfo = serde_json::from_slice(&body).unwrap_or_default();
     let res = serde_json::to_value(&data).unwrap();
     return Some(res);
-}
-
-pub async fn get_latest_block_id() -> u64 {
-    // todo
-    return FIRST_ETH_L1_EIP4844_BLOCK;
 }
 
 pub async fn insert_block(

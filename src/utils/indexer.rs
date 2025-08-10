@@ -1,5 +1,6 @@
 
 use crate::utils::env_var::get_env_var;
+use crate::utils::constants::FIRST_ETH_L1_EIP4844_BLOCK;
 use planetscale_driver::{query, Database, PSConnection};
 use serde_json::Value;
 use anyhow::{anyhow, Error};
@@ -21,12 +22,13 @@ async fn ps_init() -> PSConnection {
     conn
 }
 
-pub async fn insert_kv(versioned_hash: &str, arweave_txid: &str) -> Result<(), Error> {
+pub async fn insert_kv(versioned_hash: &str, arweave_txid: &str, ethereum_block_number: u64) -> Result<(), Error> {
     let client = ps_init().await;
 
-    let res = query("INSERT INTO blobscan_arweave_mapping(versioned_hash, arweave_txid) VALUES(\"$0\", \"$1\")",)
+    let res = query("INSERT INTO blobscan_arweave_mapping(versioned_hash, arweave_txid, ethereum_block_number) VALUES(\"$0\", \"$1\", $2)",)
     .bind(versioned_hash)
     .bind(arweave_txid)
+    .bind(ethereum_block_number)
     .execute(&client)
     .await.map_err(|e| anyhow!(e.to_string()))?;
 
@@ -45,3 +47,7 @@ pub async fn get_versioned_hash_value(versioned_hash: &str) -> Result<Value, Err
     Ok(serde_json::to_value(res)?)
 }
 
+pub async fn get_latest_block_id() -> u64 {
+    // todo
+    return FIRST_ETH_L1_EIP4844_BLOCK;
+}
