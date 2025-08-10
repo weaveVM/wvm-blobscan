@@ -1,7 +1,5 @@
 
 use crate::utils::env_var::get_env_var;
-use crate::utils::constants::FIRST_ETH_L1_EIP4844_BLOCK;
-use ethers::types::Res;
 use planetscale_driver::{query, Database, PSConnection};
 use serde_json::Value;
 use anyhow::{anyhow, Error};

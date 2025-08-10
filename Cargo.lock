@@ -1279,7 +1279,6 @@ dependencies = [
  "bundles_rs",
  "dotenv",
  "ethers",
- "eyre",
  "hex",
  "planetscale-driver",
  "reqwest 0.12.22",

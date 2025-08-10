@@ -3,10 +3,11 @@ use crate::utils::env_var::get_env_var;
 use crate::utils::types::BlobInfo;
 use crate::utils::indexer::insert_kv;
 use aws_config::{BehaviorVersion, Region};
-use aws_sdk_s3::{Client, Error};
+use aws_sdk_s3::Client;
 use serde_json::Value;
+use anyhow::{anyhow, Error};
 
-async fn s3_client() -> Client {
+async fn s3_client() -> Result<Client, Error> {
     let config = aws_config::defaults(BehaviorVersion::latest())
         .endpoint_url(get_env_var("AWS_ENDPOINT_URL").unwrap())
         .region(Region::new(get_env_var("AWS_REGION").unwrap()))
@@ -19,7 +20,7 @@ async fn s3_client() -> Client {
         ))
         .load()
         .await;
-    Client::new(&config)
+    Ok(Client::new(&config))
 }
 
 pub async fn store_blob(versioned_hash: &str, blob_data: &str, block_id: u64) -> Result<(), Error> {
@@ -31,7 +32,7 @@ pub async fn store_blob(versioned_hash: &str, blob_data: &str, block_id: u64) ->
     let blob = serialize_blobscan_block(&object_data).unwrap();
     let key: String = format!("{}/{}/{}.ans104", s3_bucket_name, s3_dir_name, blob.1);
 
-    client
+    client?
         .put_object()
         .bucket(s3_bucket_name)
         .key(key)
@@ -40,12 +41,12 @@ pub async fn store_blob(versioned_hash: &str, blob_data: &str, block_id: u64) ->
         .send()
         .await?;
 
-    let _ = insert_kv(versioned_hash, &blob.1, block_id).await.unwrap();
+    let _ = insert_kv(versioned_hash, &blob.1, block_id).await.map_err(|e| anyhow!(e.to_string()))?;
 
     Ok(())
 }
 
-pub async fn get_blob_by_versioned_hash(versioned_hash: &str) -> Option<Value> {
+pub async fn get_blob_by_versioned_hash(versioned_hash: &str) -> Result<Value, Error> {
     let client = s3_client().await;
     let s3_bucket_name = get_env_var("S3_BUCKET_NAME").unwrap();
     let s3_dir_name = get_env_var("S3_DIR_NAME").unwrap();
@@ -54,24 +55,23 @@ pub async fn get_blob_by_versioned_hash(versioned_hash: &str) -> Option<Value> {
         s3_bucket_name, s3_dir_name, versioned_hash
     );
 
-    let blob = client
+    let blob = client?
         .get_object()
         .bucket(s3_bucket_name)
         .key(key)
         .send()
-        .await
-        .ok()?;
+        .await?;
 
-    let body = blob.body.collect().await.ok()?.to_vec();
-    let data: BlobInfo = serde_json::from_slice(&body).unwrap_or_default();
-    let res = serde_json::to_value(&data).unwrap();
-    return Some(res);
+    let body = blob.body.collect().await?.to_vec();
+    let data: BlobInfo = serde_json::from_slice(&body)?;
+    let res = serde_json::to_value(&data)?;
+    Ok(res)
 }
 
 pub async fn insert_block(
     block_id: u64,
     blobs: Vec<BlobInfo>,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), Error> {
     for blob in blobs {
         store_blob(&blob.versioned_hash, &blob.data, block_id).await?;
     }

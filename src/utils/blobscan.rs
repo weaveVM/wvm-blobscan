@@ -1,7 +1,7 @@
 use bundles_rs::ans104::data_item::DataItem;
 use bundles_rs::ans104::tags::Tag;
 use bundles_rs::crypto::arweave::ArweaveSigner;
-use eyre::{Error, Result};
+use anyhow::Error;
 use reqwest;
 use serde_json::{self, Value};
 
@@ -10,7 +10,7 @@ use crate::utils::types::BlobInfo;
 
 pub async fn get_blobs_versioned_hashes_of_block(
     block_id: u64,
-) -> Result<Vec<String>, eyre::Error> {
+) -> Result<Vec<String>, Error> {
     let url = format!(
         "https://api.blobscan.com/blocks/{}?type=canonical",
         block_id
@@ -43,7 +43,7 @@ pub async fn get_blobs_versioned_hashes_of_block(
     Ok(versioned_hashes)
 }
 
-async fn get_blob_data(versioned_hash: &str) -> Result<String, eyre::Error> {
+async fn get_blob_data(versioned_hash: &str) -> Result<String, Error> {
     let url = format!("https://api.blobscan.com/blobs/{}/data", versioned_hash);
     let res = reqwest::Client::new()
         .get(url)
@@ -55,7 +55,7 @@ async fn get_blob_data(versioned_hash: &str) -> Result<String, eyre::Error> {
     Ok(res)
 }
 
-pub async fn get_blobs_of_block(block_id: u64) -> Result<Vec<BlobInfo>> {
+pub async fn get_blobs_of_block(block_id: u64) -> Result<Vec<BlobInfo>, Error> {
     let versioned_hashes = get_blobs_versioned_hashes_of_block(block_id)
         .await
         .unwrap_or_default();

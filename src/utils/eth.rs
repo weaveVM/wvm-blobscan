@@ -1,8 +1,8 @@
+use crate::utils::constants::ETH_RPC_URL;
+
 use ethers::middleware::Middleware;
 use ethers::providers::{Http, Provider};
-use eyre::{Error, Result};
-
-use crate::utils::constants::ETH_RPC_URL;
+use anyhow::Error;
 
 pub struct Ethereum {}
 
@@ -11,7 +11,7 @@ impl Ethereum {
         Provider::<Http>::try_from(url).unwrap()
     }
 
-    pub async fn get_latest_eth_block() -> Result<u64> {
+    pub async fn get_latest_eth_block() -> Result<u64, Error> {
         let provider = Self::client(ETH_RPC_URL);
         let latest_block_number = provider.get_block_number().await?;
 
