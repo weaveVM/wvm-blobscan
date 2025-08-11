@@ -1,5 +1,5 @@
-use crate::utils::env_var::get_env_var;
-use crate::utils::constants::FIRST_ETH_L1_EIP4844_BLOCK;
+use crate::core::env_var::get_env_var;
+use crate::core::constants::FIRST_ETH_L1_EIP4844_BLOCK;
 use anyhow::{anyhow, Error};
 use planetscale_driver::{query, Database, PSConnection};
 use serde::{Deserialize, Serialize};

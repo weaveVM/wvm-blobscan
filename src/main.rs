@@ -1,15 +1,15 @@
-use crate::utils::blobscan::get_blobs_of_block;
-use crate::utils::constants::FIRST_ETH_L1_EIP4844_BLOCK;
-use crate::utils::env_var::load_env_vars;
-use crate::utils::eth::Ethereum;
-use crate::utils::indexer::get_latest_block_id;
-use crate::utils::s3::insert_block;
-use crate::utils::server_handlers::{handle_get_blob, handle_get_stats, handle_route};
+use crate::core::blobscan::get_blobs_of_block;
+use crate::core::constants::FIRST_ETH_L1_EIP4844_BLOCK;
+use crate::core::env_var::load_env_vars;
+use crate::core::eth::Ethereum;
+use crate::core::indexer::get_latest_block_id;
+use crate::core::s3::insert_block;
+use crate::core::server_handlers::{handle_get_blob, handle_get_stats, handle_route};
 use axum::{routing::get, Router};
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
-mod utils;
+mod core;
 
 #[tokio::main]
 async fn main() {
