@@ -45,29 +45,29 @@ async fn main() {
 
     // backfill_blobscan_blobs(3).await;
 
-    let blobscan_insertion = tokio::spawn(async move {
+    let _blobscan_insertion = tokio::spawn(async move {
         let mut latest_archived_block = get_latest_block_id().await;
         loop {
-            println!("latest archived block id: {}", latest_archived_block);
-            let mut block_number = reader_block_number.read().await;
+            println!("latest archived block id: {latest_archived_block}");
+            let block_number = reader_block_number.read().await;
             if *block_number > FIRST_ETH_L1_EIP4844_BLOCK && latest_archived_block < *block_number {
                 let target_block_id = latest_archived_block + 1;
                 let blobs = get_blobs_of_block(target_block_id).await;
-                println!("GOT BLOBS OF BLOCK #{:?}", target_block_id);
+                println!("GOT BLOBS OF BLOCK #{target_block_id:?}");
                 match blobs {
                     Ok(blobs) => {
                         println!("INSERTING: {:?} BLOBS", blobs.len());
-                        println!("BLOBS: {:?}\n\n\n", blobs);
+                        println!("BLOBS: {blobs:?}\n\n\n");
                         let res = insert_block(target_block_id, blobs).await;
                         match res {
                             Ok(_) => latest_archived_block += 1,
                             Err(e) => {
-                                eprintln!("error updating s3: {}", e);
+                                eprintln!("error updating s3: {e}");
                                 latest_archived_block += 1
                             }
                         }
                     }
-                    Err(e) => {
+                    Err(_) => {
                         eprintln!("no blobs found in block {}", latest_archived_block + 1);
                         latest_archived_block += 1
                     }
@@ -76,7 +76,7 @@ async fn main() {
         }
     });
 
-    let eth_block_updater = tokio::spawn(async move {
+    let _eth_block_updater = tokio::spawn(async move {
         loop {
             let mut block_number = writer_block_number.write().await;
             *block_number = Ethereum::get_latest_eth_block().await.unwrap();

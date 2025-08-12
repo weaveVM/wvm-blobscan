@@ -18,7 +18,7 @@ use serde_json::{self, Value};
 
 /// Get a vector of the blobs versioned hashes in a given Ethereum block number.
 pub async fn get_blobs_versioned_hashes_of_block(block_id: u64) -> Result<Vec<String>, Error> {
-    let url = format!("https://api.blobscan.com/blocks/{}?type=canonical", block_id);
+    let url = format!("https://api.blobscan.com/blocks/{block_id}?type=canonical");
     let req: Value = reqwest::Client::new().get(url).send().await.unwrap().json().await?;
     let versioned_hashes: Vec<String> = req
         .pointer("/transactions")
@@ -43,7 +43,7 @@ pub async fn get_blobs_versioned_hashes_of_block(block_id: u64) -> Result<Vec<St
 
 /// Get the blob's data field (hex) for a given blob's versioned hash.
 async fn get_blob_data(versioned_hash: &str) -> Result<String, Error> {
-    let url = format!("https://api.blobscan.com/blobs/{}/data", versioned_hash);
+    let url = format!("https://api.blobscan.com/blobs/{versioned_hash}/data");
     let res = reqwest::Client::new().get(url).send().await?.text().await.unwrap_or_default();
     Ok(res)
 }
@@ -55,11 +55,8 @@ pub async fn get_blobs_of_block(block_id: u64) -> Result<Vec<BlobInfo>, Error> {
     for hash in versioned_hashes {
         let blob_data = get_blob_data(&hash).await.unwrap();
 
-        let blob = BlobInfo {
-            ethereum_block_number: block_id as u64,
-            versioned_hash: hash,
-            data: blob_data,
-        };
+        let blob =
+            BlobInfo { ethereum_block_number: block_id, versioned_hash: hash, data: blob_data };
 
         res.push(blob);
     }

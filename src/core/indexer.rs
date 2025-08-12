@@ -51,22 +51,21 @@ pub async fn insert_kv(
 ) -> Result<(), Error> {
     let client = ps_init().await;
 
-    let res = query("INSERT INTO blobscan_arweave_mapping(versioned_hash, arweave_txid, ethereum_block_number) VALUES(\"$0\", \"$1\", $2)",)
+    query("INSERT INTO blobscan_arweave_mapping(versioned_hash, arweave_txid, ethereum_block_number) VALUES(\"$0\", \"$1\", $2)",)
     .bind(versioned_hash)
     .bind(arweave_txid)
     .bind(ethereum_block_number)
     .execute(&client)
     .await.map_err(|e| anyhow!(e.to_string()))?;
 
-    Ok(res)
+    Ok(())
 }
 /// Get the metadata pair (versioned hash, DataItem ID) for a given blob's versioned hash.
 pub async fn get_versioned_hash_value(versioned_hash: &str) -> Result<Value, Error> {
     let client = ps_init().await;
 
     let query_formatted = format!(
-        "SELECT versioned_hash, arweave_txid FROM blobscan_arweave_mapping WHERE versioned_hash = '{}' LIMIT 1;",
-        versioned_hash
+        "SELECT versioned_hash, arweave_txid FROM blobscan_arweave_mapping WHERE versioned_hash = '{versioned_hash}' LIMIT 1;"
     );
     let res: GetVersionedHash =
         query(&query_formatted).fetch_one(&client).await.unwrap_or_default();
@@ -81,7 +80,7 @@ pub async fn get_latest_block_id() -> u64 {
             .fetch_scalar(&client)
             .await
             .unwrap_or(FIRST_ETH_L1_EIP4844_BLOCK);
-    return res;
+    res
 }
 /// Get the indexer's stats - it returns the latest fields that contains
 /// a blob (a block with EIP-4844 tx).
