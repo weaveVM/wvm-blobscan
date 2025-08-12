@@ -1,6 +1,6 @@
 [package]
-name = "wvm-blobscan"
-version = "0.2.0"
+name = "blobscan-agent"
+version = "0.3.0"
 edition = "2021"
 
 [dependencies]
@@ -14,14 +14,17 @@ alloy-eips = "0.13.0"
 alloy-serde = "0.13.0"
 tokio = { version = "1.41.1", features = ["full"]}
 ethers = {version = "2.0.14", features = ["ws"]}
-eyre = "0.6.12"
 brotli = "7.0.0"
 serde = "1.0.215"
 serde_json = "1.0.133"
-planetscale-driver = "0.5.1"
-dotenv = "0.15.0"
-shuttle-runtime = "0.50.0"
-shuttle-axum = "0.50.0"
+dotenvy = "0.15.7"
 axum = "0.7.9"
+tokio-util = "0.7"
+tower = "0.4"
 reqwest = {version = "0.12.12", features=["json"]}
 anyhow = "1.0.98"
+bundles_rs = { git = "https://github.com/loadnetwork/bundles-rs.git", branch = "main"}
+aws-config = { version= "1.8.3", features = ["behavior-version-latest"] }
+aws-sdk-s3= { version = "1.100.0", features = ["rt-tokio"] }
+hex = "0.4.3"
+planetscale-driver = "0.5.1"

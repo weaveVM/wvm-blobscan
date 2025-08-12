@@ -1,30 +1,25 @@
-use {
-    crate::utils::{
-        env_var::get_env_var,
-        planetscale::{ps_archive_block, ps_get_all_versioned_hashes_paginated},
-        types::BlobInfo,
-        wvm::send_wvm_calldata,
-    },
-    eyre::{eyre, Error, Result},
-    reqwest,
-    serde_json::{self, Value},
-    std::io::{Read, Write},
-};
+//! Module to handle blobscan API operations.
+//!
+//! Functionalities:
+//! - Fetch blobs from a given Ethereum block number
+//! - Fetch blobs' versioned hashes for a given Ethereum block number
+//! - Fetch blob data for a given blob versioned hash
+//! - Serialize BlobInfo as Arweave's ANS-104 DataItem
+//! - Send the stored blob to Blobscan's API - /weavevm-references endpoint
 
-pub async fn get_blobs_versioned_hashes_of_block(
-    block_id: u32,
-) -> Result<Vec<String>, eyre::Error> {
-    let url = format!(
-        "https://api.blobscan.com/blocks/{}?type=canonical",
-        block_id
-    );
-    let req: Value = reqwest::Client::new()
-        .get(url)
-        .send()
-        .await
-        .unwrap()
-        .json()
-        .await?;
+use crate::core::{env_var::get_env_var, types::BlobInfo};
+use anyhow::Error;
+use bundles_rs::{
+    ans104::{data_item::DataItem, tags::Tag},
+    crypto::arweave::ArweaveSigner,
+};
+use reqwest;
+use serde_json::{self, Value};
+
+/// Get a vector of the blobs versioned hashes in a given Ethereum block number.
+pub async fn get_blobs_versioned_hashes_of_block(block_id: u64) -> Result<Vec<String>, Error> {
+    let url = format!("https://api.blobscan.com/blocks/{block_id}?type=canonical");
+    let req: Value = reqwest::Client::new().get(url).send().await.unwrap().json().await?;
     let versioned_hashes: Vec<String> = req
         .pointer("/transactions")
         .and_then(|txs| txs.as_array())
@@ -46,31 +41,22 @@ pub async fn get_blobs_versioned_hashes_of_block(
     Ok(versioned_hashes)
 }
 
-async fn get_blob_data(versioned_hash: &str) -> Result<String, eyre::Error> {
-    let url = format!("https://api.blobscan.com/blobs/{}/data", versioned_hash);
-    let res = reqwest::Client::new()
-        .get(url)
-        .send()
-        .await?
-        .text()
-        .await
-        .unwrap_or_default();
+/// Get the blob's data field (hex) for a given blob's versioned hash.
+async fn get_blob_data(versioned_hash: &str) -> Result<String, Error> {
+    let url = format!("https://api.blobscan.com/blobs/{versioned_hash}/data");
+    let res = reqwest::Client::new().get(url).send().await?.text().await.unwrap_or_default();
     Ok(res)
 }
 
-pub async fn get_blobs_of_block(block_id: u32) -> Result<Vec<BlobInfo>> {
-    let versioned_hashes = get_blobs_versioned_hashes_of_block(block_id)
-        .await
-        .unwrap_or_default();
+/// Get a vector of blobs as BlobInfo for a given Ethereum block number.
+pub async fn get_blobs_of_block(block_id: u64) -> Result<Vec<BlobInfo>, Error> {
+    let versioned_hashes = get_blobs_versioned_hashes_of_block(block_id).await.unwrap_or_default();
     let mut res: Vec<BlobInfo> = Vec::new();
     for hash in versioned_hashes {
         let blob_data = get_blob_data(&hash).await.unwrap();
 
-        let blob = BlobInfo {
-            ethereum_block_number: block_id as u64,
-            versioned_hash: hash,
-            data: blob_data,
-        };
+        let blob =
+            BlobInfo { ethereum_block_number: block_id, versioned_hash: hash, data: blob_data };
 
         res.push(blob);
     }
@@ -78,42 +64,20 @@ pub async fn get_blobs_of_block(block_id: u32) -> Result<Vec<BlobInfo>> {
     Ok(res)
 }
 
-pub fn serialize_blobscan_block(block: &BlobInfo) -> Result<Vec<u8>> {
+/// Serialize the BlobInfo as ANS-104 DataItem, sign it using the agent's Arweave JWK
+/// and return DataItem raw bytes and its deterministic ID.
+pub fn serialize_blobscan_block(block: &BlobInfo) -> Result<(Vec<u8>, String), Error> {
     let data = serde_json::to_vec(&block)?;
-    let compressed_data = brotli_compress(&data);
-    Ok(compressed_data)
+    let tags =
+        vec![Tag::new("content-type", "application/json"), Tag::new("Protocol", "Load-Blobscan")];
+    let jwk = get_env_var("blobscan_agent_pk")?;
+    let signer = ArweaveSigner::from_jwk_str(&jwk).unwrap();
+    let dataitem = DataItem::build_and_sign(&signer, None, None, tags, data).unwrap();
+    Ok((dataitem.to_bytes().unwrap(), dataitem.arweave_id()))
 }
 
-pub async fn insert_block(block_id: u32, blobs: Vec<BlobInfo>) -> Result<(), Error> {
-    for blob in blobs {
-        let wvm_data_input = serialize_blobscan_block(&blob)?;
-        let wvm_txid = send_wvm_calldata(wvm_data_input).await.unwrap();
-        let _res = ps_archive_block(&block_id, &wvm_txid, &blob.versioned_hash, &blob.data)
-            .await
-            .unwrap();
-        let _send_to_blobscan = send_blob_to_blobscan(&blob.versioned_hash).await.unwrap();
-    }
-
-    Ok(())
-}
-
-fn brotli_compress(input: &[u8]) -> Vec<u8> {
-    let mut writer = brotli::CompressorWriter::new(Vec::new(), 4096, 11, 22);
-    writer.write_all(input).unwrap();
-    writer.into_inner()
-}
-
-fn brotli_decompress(input: Vec<u8>) -> Vec<u8> {
-    let mut decompressed_data = Vec::new();
-    let mut decompressor = brotli::Decompressor::new(input.as_slice(), 4096); // 4096 is the buffer size
-
-    decompressor
-        .read_to_end(&mut decompressed_data)
-        .expect("Decompression failed");
-    decompressed_data
-}
-
-pub async fn send_blob_to_blobscan(blob_hash: &str) -> Result<(), Error> {
+/// Index the blob's versioned_hash -> data_item_id on Blobscan
+pub(crate) async fn send_blob_to_blobscan(blob_hash: &str) -> Result<(), Error> {
     let client = reqwest::Client::new();
     let key = get_env_var("blobscan_api_key").unwrap();
     let response = client
