@@ -1,16 +1,16 @@
 //! Blobscan Agent - Main application entry point.
-//! 
+//!
 //! This application serves as a bridge between Ethereum's EIP-4844 blob data
-//! served by blobscab.com and Load's HyperBEAM ~s3@1.0 device (temporal storage). 
+//! served by blobscab.com and Load's HyperBEAM ~s3@1.0 device (temporal storage).
 //! It continuously monitors Ethereum blocks for blob transactions, processes them
 //!  into ANS-104 DataItems, and stores them on Load's HyperBEAM S3 device for hybrid retrieval.
-//! 
+//!
 //! ## Architecture:
 //! - HTTP API server for blob metadata retrieval and stats
-//! - Background indexer for continuous Ethereum block monitoring  
+//! - Background indexer for continuous Ethereum block monitoring
 //! - HyperBEAM ~s3@1.0 storage integration with ANS-104 data format
 //! - Indexer's database PlanetScalefor blob metadata indexing
-//! 
+//!
 //! ## API Endpoints:
 //! - `GET /` - Health check
 //! - `GET /v1/blob/:versioned_hash` - Get blob ANS-104 DataItem ID

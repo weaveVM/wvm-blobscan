@@ -1,8 +1,8 @@
 //! Module to interact with an Ethereum JSON-RPC client
-//! 
+//!
 //! Functionalities:
 //! - Get the latest Ethereum block number
-//! 
+//!
 //! Note: this modules should migrate to alloy-rs instead of using ethers
 use crate::core::constants::ETH_RPC_URL;
 use anyhow::Error;

@@ -1,11 +1,11 @@
 //! Module to handle blobscan API operations.
-//! 
+//!
 //! Functionalities:
 //! - Fetch blobs from a given Ethereum block number
 //! - Fetch blobs' versioned hashes for a given Ethereum block number
 //! - Fetch blob data for a given blob versioned hash
 //! - Serialize BlobInfo as Arweave's ANS-104 DataItem
-//! - Send the stored blob to Blobscan's API
+//! - Send the stored blob to Blobscan's API - /weavevm-references endpoint
 
 use crate::core::{env_var::get_env_var, types::BlobInfo};
 use anyhow::Error;
@@ -16,6 +16,7 @@ use bundles_rs::{
 use reqwest;
 use serde_json::{self, Value};
 
+/// Get a vector of the blobs versioned hashes in a given Ethereum block number.
 pub async fn get_blobs_versioned_hashes_of_block(block_id: u64) -> Result<Vec<String>, Error> {
     let url = format!("https://api.blobscan.com/blocks/{}?type=canonical", block_id);
     let req: Value = reqwest::Client::new().get(url).send().await.unwrap().json().await?;
@@ -40,12 +41,14 @@ pub async fn get_blobs_versioned_hashes_of_block(block_id: u64) -> Result<Vec<St
     Ok(versioned_hashes)
 }
 
+/// Get the blob's data field (hex) for a given blob's versioned hash.
 async fn get_blob_data(versioned_hash: &str) -> Result<String, Error> {
     let url = format!("https://api.blobscan.com/blobs/{}/data", versioned_hash);
     let res = reqwest::Client::new().get(url).send().await?.text().await.unwrap_or_default();
     Ok(res)
 }
 
+/// Get a vector of blobs as BlobInfo for a given Ethereum block number.
 pub async fn get_blobs_of_block(block_id: u64) -> Result<Vec<BlobInfo>, Error> {
     let versioned_hashes = get_blobs_versioned_hashes_of_block(block_id).await.unwrap_or_default();
     let mut res: Vec<BlobInfo> = Vec::new();
@@ -64,6 +67,8 @@ pub async fn get_blobs_of_block(block_id: u64) -> Result<Vec<BlobInfo>, Error> {
     Ok(res)
 }
 
+/// Serialize the BlobInfo as ANS-104 DataItem, sign it using the agent's Arweave JWK
+/// and return DataItem raw bytes and its deterministic ID.
 pub fn serialize_blobscan_block(block: &BlobInfo) -> Result<(Vec<u8>, String), Error> {
     let data = serde_json::to_vec(&block)?;
     let tags =
@@ -74,7 +79,8 @@ pub fn serialize_blobscan_block(block: &BlobInfo) -> Result<(Vec<u8>, String), E
     Ok((dataitem.to_bytes().unwrap(), dataitem.arweave_id()))
 }
 
-pub async fn send_blob_to_blobscan(blob_hash: &str) -> Result<(), Error> {
+/// Index the blob's versioned_hash -> data_item_id on Blobscan
+pub(crate) async fn send_blob_to_blobscan(blob_hash: &str) -> Result<(), Error> {
     let client = reqwest::Client::new();
     let key = get_env_var("blobscan_api_key").unwrap();
     let response = client
