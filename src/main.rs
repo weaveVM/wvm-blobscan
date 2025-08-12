@@ -22,7 +22,7 @@ use crate::core::{
     eth::Ethereum,
     indexer::get_latest_block_id,
     s3::insert_block,
-    server_handlers::{handle_get_blob, handle_get_stats, handle_route},
+    server_handlers::{handle_get_blob, handle_get_stats, handle_info, handle_route},
 };
 use axum::{routing::get, Router};
 use std::sync::Arc;
@@ -36,7 +36,8 @@ async fn main() {
     let router = Router::new()
         .route("/", get(handle_route))
         .route("/v1/blob/:versioned_hash", get(handle_get_blob))
-        .route("/v1/stats", get(handle_get_stats));
+        .route("/v1/stats", get(handle_get_stats))
+        .route("/v1/info", get(handle_info));
 
     let block_number = Ethereum::get_latest_eth_block().await.unwrap();
     let block_number = Arc::new(RwLock::new(block_number));
