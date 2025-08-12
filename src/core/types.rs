@@ -1,3 +1,5 @@
+//! A Module that contains some of the repositories structs.
+//! Data types mostly associated with the Ethereum blobs
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]

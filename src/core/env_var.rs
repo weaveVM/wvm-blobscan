@@ -1,3 +1,4 @@
+//! Module to handle env variables access
 use dotenvy::dotenv;
 use std::env;
 

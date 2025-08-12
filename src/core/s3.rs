@@ -1,3 +1,14 @@
+//! Module to interact with Load's S3 HyperBEAM device (~s3@1.0).
+//! The module store the serialized Ethereum blobs as ANS-104 DataItems
+//! in a a location in the HyperBEAM device where it can be retrieved back from 
+//! the Load HyperBEAM Hybrid Gateway as if it is an onchain Arweave DataItem
+//! To learn more about Hybrid Gateway and retrieval logic, check the load_hb
+//! documentation: https://github.com/loadnetwork/load_hb/tree/s3-edge/native/s3_nif#hybrid-gateway 
+//! 
+//! Functionalities: 
+//! - Initialize ~s3@1.0 device connection
+//! - Store Ethereum blob as BlobInfo struct, serialized as ANS-104 DataItem
+//!  - Retrieve a blob and its data (deserialized) back from the ~s3@1.0 for a given versione hash
 use crate::core::{
     blobscan::serialize_blobscan_block, env_var::get_env_var, indexer::insert_kv, types::BlobInfo,
 };

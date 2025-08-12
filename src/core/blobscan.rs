@@ -1,3 +1,12 @@
+//! Module to handle blobscan API operations.
+//! 
+//! Functionalities:
+//! - Fetch blobs from a given Ethereum block number
+//! - Fetch blobs' versioned hashes for a given Ethereum block number
+//! - Fetch blob data for a given blob versioned hash
+//! - Serialize BlobInfo as Arweave's ANS-104 DataItem
+//! - Send the stored blob to Blobscan's API
+
 use crate::core::{env_var::get_env_var, types::BlobInfo};
 use anyhow::Error;
 use bundles_rs::{

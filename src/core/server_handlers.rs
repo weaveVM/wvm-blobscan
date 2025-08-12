@@ -1,3 +1,9 @@
+//! Module that handles the agent's HTTP API server
+//! 
+//! Endpoints:
+//! - GET route: `/`
+//! - GET blob's associated ANS-104 DataItem ID: `/v1/blob/:versioned_hash`
+//! - GET indexer stats: `/v1/stats`
 use crate::core::indexer::{get_indexer_stats, get_versioned_hash_value};
 use axum::{extract::Path, response::Json};
 use serde_json::Value;

@@ -1,3 +1,13 @@
+//! Agent's indexer module - uses planetscale to index
+//! metadata about the Ethereum blobs stored as ANS-104 offchain
+//! DataItems on Load's HyperBEAM S3 node.
+//! 
+//! Functionalities:
+//! - Map a blob versioned hash to the corresponding offchain ANS-104 DataItem ID
+//! - Get the DataItem ID for a given blob versioned hash
+//! - Get indexer stats
+//! - Get latest indexed (with found blobs) Ethereum block number
+//! - Handles the indexer structs
 use crate::core::{constants::FIRST_ETH_L1_EIP4844_BLOCK, env_var::get_env_var};
 use anyhow::{anyhow, Error};
 use planetscale_driver::{query, Database, PSConnection};
