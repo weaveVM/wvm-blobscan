@@ -14,11 +14,7 @@ pub struct BlobInfo {
 
 impl BlobInfo {
     pub fn from(ethereum_block_number: u64, versioned_hash: String, data: String) -> Self {
-        Self {
-            ethereum_block_number,
-            versioned_hash,
-            data,
-        }
+        Self { ethereum_block_number, versioned_hash, data }
     }
 }
 

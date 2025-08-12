@@ -1,7 +1,6 @@
-use crate::core::blobscan::serialize_blobscan_block;
-use crate::core::env_var::get_env_var;
-use crate::core::indexer::insert_kv;
-use crate::core::types::BlobInfo;
+use crate::core::{
+    blobscan::serialize_blobscan_block, env_var::get_env_var, indexer::insert_kv, types::BlobInfo,
+};
 use anyhow::{anyhow, Error};
 use aws_config::{BehaviorVersion, Region};
 use aws_sdk_s3::Client;
@@ -41,9 +40,8 @@ pub async fn store_blob(versioned_hash: &str, blob_data: &str, block_id: u64) ->
         .send()
         .await?;
 
-    let _ = insert_kv(versioned_hash, &blob.1, block_id)
-        .await
-        .map_err(|e| anyhow!(e.to_string()))?;
+    let _ =
+        insert_kv(versioned_hash, &blob.1, block_id).await.map_err(|e| anyhow!(e.to_string()))?;
 
     Ok(())
 }
@@ -52,17 +50,9 @@ pub async fn get_blob_by_versioned_hash(versioned_hash: &str) -> Result<Value, E
     let client = s3_client().await;
     let s3_bucket_name = get_env_var("S3_BUCKET_NAME").unwrap();
     let s3_dir_name = get_env_var("S3_DIR_NAME").unwrap();
-    let key: String = format!(
-        "{}/{}/{}.ans104",
-        s3_bucket_name, s3_dir_name, versioned_hash
-    );
+    let key: String = format!("{}/{}/{}.ans104", s3_bucket_name, s3_dir_name, versioned_hash);
 
-    let blob = client?
-        .get_object()
-        .bucket(s3_bucket_name)
-        .key(key)
-        .send()
-        .await?;
+    let blob = client?.get_object().bucket(s3_bucket_name).key(key).send().await?;
 
     let body = blob.body.collect().await?.to_vec();
     let data: BlobInfo = serde_json::from_slice(&body)?;

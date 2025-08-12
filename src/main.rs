@@ -1,10 +1,12 @@
-use crate::core::blobscan::get_blobs_of_block;
-use crate::core::constants::FIRST_ETH_L1_EIP4844_BLOCK;
-use crate::core::env_var::load_env_vars;
-use crate::core::eth::Ethereum;
-use crate::core::indexer::get_latest_block_id;
-use crate::core::s3::insert_block;
-use crate::core::server_handlers::{handle_get_blob, handle_get_stats, handle_route};
+use crate::core::{
+    blobscan::get_blobs_of_block,
+    constants::FIRST_ETH_L1_EIP4844_BLOCK,
+    env_var::load_env_vars,
+    eth::Ethereum,
+    indexer::get_latest_block_id,
+    s3::insert_block,
+    server_handlers::{handle_get_blob, handle_get_stats, handle_route},
+};
 use axum::{routing::get, Router};
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -42,7 +44,10 @@ async fn main() {
                         let res = insert_block(target_block_id, blobs).await;
                         match res {
                             Ok(_) => latest_archived_block += 1,
-                            Err(e) => {eprintln!("error updating s3: {}", e); latest_archived_block += 1},
+                            Err(e) => {
+                                eprintln!("error updating s3: {}", e);
+                                latest_archived_block += 1
+                            }
                         }
                     }
                     Err(e) => {

@@ -1,7 +1,9 @@
 use crate::core::constants::ETH_RPC_URL;
-use ethers::middleware::Middleware;
-use ethers::providers::{Http, Provider};
 use anyhow::Error;
+use ethers::{
+    middleware::Middleware,
+    providers::{Http, Provider},
+};
 
 pub struct Ethereum {}
 

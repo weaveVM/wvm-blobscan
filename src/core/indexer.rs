@@ -1,5 +1,4 @@
-use crate::core::env_var::get_env_var;
-use crate::core::constants::FIRST_ETH_L1_EIP4844_BLOCK;
+use crate::core::{constants::FIRST_ETH_L1_EIP4844_BLOCK, env_var::get_env_var};
 use anyhow::{anyhow, Error};
 use planetscale_driver::{query, Database, PSConnection};
 use serde::{Deserialize, Serialize};
@@ -52,10 +51,8 @@ pub async fn get_versioned_hash_value(versioned_hash: &str) -> Result<Value, Err
         "SELECT versioned_hash, arweave_txid FROM blobscan_arweave_mapping WHERE versioned_hash = '{}' LIMIT 1;",
         versioned_hash
     );
-    let res: GetVersionedHash = query(&query_formatted)
-        .fetch_one(&client)
-        .await
-        .unwrap_or_default();
+    let res: GetVersionedHash =
+        query(&query_formatted).fetch_one(&client).await.unwrap_or_default();
 
     Ok(serde_json::to_value(res)?)
 }
