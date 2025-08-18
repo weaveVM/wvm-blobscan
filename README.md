@@ -21,19 +21,19 @@ cargo +nightly fmt && cargo clippy --all-targets --all-features && cargo run --r
 ### Retrieve blob versioned hash and the associated ANS-104 dataitem id by versioned hash
 
 ```bash
-curl -X GET https://blobscan.load.rs/v1/blob/$BLOB_VERSIONED_HASH
+curl -X GET https://load-blobscan-agent.load.network/v1/blob/$BLOB_VERSIONED_HASH
 ```
 
 ### Retrieve Indexer stats
 
 ```bash
-curl -X GET https://blobscan.load.rs/v1/stats
+curl -X GET https://load-blobscan-agent.load.network/v1/stats
 ```
 
 ### Agent's server info
 
 ```bash
-curl -X GET https://blobscan.load.rs/v1/info
+curl -X GET https://load-blobscan-agent.load.network/v1/info
 ```
 
 ## License
