@@ -17,7 +17,7 @@
 //! - `GET /v1/stats` - Get indexer stats
 use crate::core::{
     blobscan::get_blobs_of_block,
-    constants::FIRST_ETH_L1_EIP4844_BLOCK,
+    constants::{FIRST_ETH_L1_EIP4844_BLOCK, SERVER_PORT},
     env_var::load_env_vars,
     eth::Ethereum,
     indexer::get_latest_block_id,
@@ -86,7 +86,7 @@ async fn main() {
         }
     });
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
-    println!("Server running on http://0.0.0.0:3000");
+    let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{SERVER_PORT}")).await.unwrap();
+    println!("Server running on PORT: {SERVER_PORT}");
     axum::serve(listener, router).await.unwrap();
 }
